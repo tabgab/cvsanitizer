@@ -1,0 +1,58 @@
+{
+  "name": "cvsanitizer",
+  "version": "1.0.0",
+  "description": "PII Detection and Redaction for CVs - Remove personally identifiable information from CVs before sending to LLMs",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "pii",
+    "privacy",
+    "cv",
+    "resume",
+    "redaction",
+    "gdpr",
+    "llm",
+    "data-protection"
+  ],
+  "author": "CV Sanitizer Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tabgab/cvsanitizer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tabgab/cvsanitizer/issues"
+  },
+  "homepage": "https://github.com/tabgab/cvsanitizer#readme",
+  "dependencies": {
+    "child_process": "^1.0.2",
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7",
+    "util": "^0.12.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/jest": "^29.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "jest": "^29.0.0",
+    "ts-jest": "^29.0.0",
+    "typescript": "^5.0.0"
+  },
+  "files": [
+    "lib/**/*",
+    "python/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
