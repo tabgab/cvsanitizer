@@ -121,6 +121,16 @@ class PIIDetector:
                 # Australian landline numbers
                 r'\b(?:\+61\s?[2-8]\d{8}|0[2-8]\d{8})\b',
             ],
+            'HU': [
+                # Hungarian mobile numbers (06/20, 06/30, 06/31, 06/70)
+                r'\b(?:\+36\s?(?:20|30|31|70)\s?\d{3}\s?\d{4}|06(?:20|30|31|70)\s?\d{3}\s?\d{4})\b',
+                # Hungarian landline numbers (06/1, 06/22, etc.)
+                r'\b(?:\+36\s?1\s?\d{3}\s?\d{4}|06\s?1\s?\d{3}\s?\d{4})\b',
+                r'\b(?:\+36\s?(?:22|23|33|42|44|52|53|62|63|66|67|72|73|74|75|76|77|78|79|82|83|84|85|87|88|89|91|92|93|94|95|96)\s?\d{3}\s?\d{3}|06\s?(?:22|23|33|42|44|52|53|62|63|66|67|72|73|74|75|76|77|78|79|82|83|84|85|87|88|89|91|92|93|94|95|96)\s?\d{3}\s?\d{3})\b',
+                # Handle fragmented phone numbers (common in PDFs)
+                r'(?:\+36|06|01|20|30|31|70)\s*\n?\s*\d{3}\s*\n?\s*\d{4}',
+                r'(?:\+36|06|01|20|30|31|70)\s*\n?\s*\d{2}\s*\n?\s*\d{2}\s*\n?\s*\d{3}',
+            ],
         }
         
         # Postcode patterns by country (enhanced with precise validation)
@@ -165,6 +175,10 @@ class PIIDetector:
             'SE': [
                 # Swedish postal codes (3-digit or 5-digit)
                 r'\b\d{3}\s?\d{2}\b',
+            ],
+            'HU': [
+                # Hungarian postal codes (4 digits)
+                r'\b\d{4}\b',
             ],
         }
         
@@ -273,7 +287,11 @@ class PIIDetector:
             # International name patterns (simplified)
             r'\b[A-Z][a-zA-Z]+\s+[A-Z][a-zA-Z]+\s+[A-Z][a-zA-Z]+\b',  # Three-word names
             # Names with special characters (European)
-            r'\b[A-Z][a-zA-Záéíóúñü]+\s+[A-Z][a-zA-Záéíóúñü]+\b',
+            r'\b[A-Z][a-zA-ZáéíóúñüÁÉÍÓÚÑÜ]+\s+[A-Z][a-zA-ZáéíóúñüÁÉÍÓÚÑÜ]+\b',
+            # Hungarian names with accented characters
+            r'\b[A-Z][a-zA-ZáéíóúöüóűÁÉÍÓÚÖÜÓŰ]+\s+[A-Z][a-zA-ZáéíóúöüóűÁÉÍÓÚÖÜÓŰ]+\b',
+            # Common Hungarian surnames
+            r'\b(?:Nagy|Kovács|Szabó|Tóth|Varga|Kiss|Molnár|Bakos|Takács|Fekete|Novák|Horváth|Lakatos|Juhász|Oláh|Balogh|Simon|Farkas)\b',
         ]
         
         # Date of birth patterns (enhanced with more formats)
@@ -429,24 +447,54 @@ class PIIDetector:
         return matches
     
     def _detect_addresses(self, text: str) -> List[PIIMatch]:
-        """Detect street addresses."""
+        """Detect street addresses with enhanced multi-line support."""
         matches = []
+        seen_addresses = set()  # Avoid duplicates
         
         # Look for address indicators followed by address-like text
         for indicator in self.address_indicators:
-            pattern = rf'{indicator}[\s:]*([^.,\n]+)'
+            # Enhanced pattern to handle multi-line addresses
+            pattern = rf'{indicator}[\s:]*([^.,\n]+(?:\n[^.,\n]+)*)'
             for match in re.finditer(pattern, text, re.IGNORECASE):
                 address_text = match.group(1).strip()
-                if self._is_likely_address(address_text):
+                # Clean up the address text
+                address_text = re.sub(r'\s+', ' ', address_text)
+                
+                if self._is_likely_address(address_text) and address_text not in seen_addresses:
+                    seen_addresses.add(address_text)
                     matches.append(PIIMatch(
                         category=PIICategory.ADDRESS,
                         text=address_text,
                         start=match.start(),
                         end=match.end(),
-                        confidence=0.6
+                        confidence=0.7
                     ))
         
-        # Look for standalone address patterns
+        # Hungarian-specific address patterns
+        hungarian_patterns = [
+            # Street + number + city + postal code
+            r'\b[A-ZÁÉÍÓÚÖÜÓŰ][a-záéíóúöüóű]+\s+(?:u\.|utca|út|tér|körút)\s+\d+(?:\s*\w?)?,?\s*\d{4}\s+[A-ZÁÉÍÓÚÖÜÓŰ][a-záéíóúöüóű]+',
+            # Multi-line Hungarian addresses
+            r'([A-ZÁÉÍÓÚÖÜÓŰ][a-záéíóúöüóű]+\s+(?:u\.|utca|út|tér|körút)\s+\d+)(?:\s*\n\s*(\d{4}\s+[A-ZÁÉÍÓÚÖÜÓŰ][a-záéíóúöüóű]+))?',
+            r'(\d{4}\s+[A-ZÁÉÍÓÚÖÜÓŰ][a-záéíóúöüóű]+)(?:\s*\n\s*([A-ZÁÉÍÓÚÖÜÓŰ][a-záéíóúöüóű]+\s+(?:u\.|utca|út|tér|körút)\s+\d+))?',
+        ]
+        
+        for pattern in hungarian_patterns:
+            for match in re.finditer(pattern, text):
+                address_text = match.group().strip()
+                address_text = re.sub(r'\s+', ' ', address_text)
+                
+                if address_text not in seen_addresses:
+                    seen_addresses.add(address_text)
+                    matches.append(PIIMatch(
+                        category=PIICategory.ADDRESS,
+                        text=address_text,
+                        start=match.start(),
+                        end=match.end(),
+                        confidence=0.8  # Higher confidence for specific patterns
+                    ))
+        
+        # Standalone address patterns
         address_patterns = [
             r'\b\d+\s+[A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Lane|Ln|Drive|Dr|Court|Ct|Way|Boulevard|Blvd)\b',
             r'\b\d+\s+[A-Za-z0-9\s]+(?:Apartment|Apt|Suite|Ste|Unit|Flat)\s*#\d+\b',

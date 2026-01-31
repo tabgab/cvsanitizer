@@ -9,6 +9,7 @@ import os
 import logging
 from typing import Optional, Dict, Any
 from pathlib import Path
+import re
 
 try:
     import PyPDF2
@@ -91,39 +92,66 @@ class PDFParser:
         if not os.path.exists(pdf_path):
             raise PDFParseError(f"PDF file not found: {pdf_path}")
         
-        # Determine which library to use
-        library = self._select_library()
+        for library in self.available_libraries:
+            try:
+                if library == "pymupdf":
+                    result = self._parse_with_pymupdf(pdf_path)
+                elif library == "pdfplumber":
+                    result = self._parse_with_pdfplumber(pdf_path)
+                elif library == "pypdf2":
+                    result = self._parse_with_pypdf2(pdf_path)
+                
+                # Apply PDF text normalization for better PII detection
+                result['text'] = self._normalize_pdf_text(result['text'])
+                
+                self.logger.info(f"Successfully parsed PDF using {library}")
+                return result
+                
+            except Exception as e:
+                self.logger.warning(f"Failed to parse with {library}: {e}")
+                continue
         
-        try:
-            if library == "pymupdf":
-                return self._parse_with_pymupdf(pdf_path)
-            elif library == "pdfplumber":
-                return self._parse_with_pdfplumber(pdf_path)
-            elif library == "pypdf2":
-                return self._parse_with_pypdf2(pdf_path)
-            else:
-                raise PDFParseError(f"Unknown library: {library}")
+        raise PDFParseError("All PDF parsing libraries failed")
+    
+    def _normalize_pdf_text(self, text: str) -> str:
+        """
+        Normalize PDF text for better PII detection.
         
-        except Exception as e:
-            self.logger.error(f"Failed to parse PDF with {library}: {e}")
+        This method handles line breaks and text fragmentation issues
+        that commonly occur in PDF text extraction.
+        
+        Args:
+            text: Raw extracted text from PDF
             
-            # Try fallback libraries
-            fallback_libraries = [lib for lib in self.available_libraries if lib != library]
-            
-            for fallback_lib in fallback_libraries:
-                try:
-                    self.logger.info(f"Trying fallback library: {fallback_lib}")
-                    if fallback_lib == "pymupdf":
-                        return self._parse_with_pymupdf(pdf_path)
-                    elif fallback_lib == "pdfplumber":
-                        return self._parse_with_pdfplumber(pdf_path)
-                    elif fallback_lib == "pypdf2":
-                        return self._parse_with_pypdf2(pdf_path)
-                except Exception as fallback_error:
-                    self.logger.error(f"Fallback {fallback_lib} also failed: {fallback_error}")
-                    continue
-            
-            raise PDFParseError(f"All PDF parsing libraries failed for {pdf_path}")
+        Returns:
+            Normalized text optimized for PII detection
+        """
+        if not text:
+            return text
+        
+        # Preserve important structure while fixing fragmentation
+        normalized = text
+        
+        # 1. Fix fragmented phone numbers (digits separated by line breaks)
+        normalized = re.sub(r'(\d)\s*\n\s*(\d)', r'\1\2', normalized)
+        
+        # 2. Fix fragmented addresses (words separated by line breaks)
+        normalized = re.sub(r'([a-zA-ZáéíóúñüÁÉÍÓÚÑÜ])\s*\n\s*([a-zA-ZáéíóúñüÁÉÍÓÚÑÜ])', r'\1\2', normalized)
+        
+        # 3. Fix fragmented email addresses
+        normalized = re.sub(r'([a-zA-Z0-9._%+-])\s*\n\s*([a-zA-Z0-9._%+-])', r'\1\2', normalized)
+        
+        # 4. Fix fragmented URLs and social media
+        normalized = re.sub(r'([a-zA-Z0-9\-._/])\s*\n\s*([a-zA-Z0-9\-._/])', r'\1\2', normalized)
+        
+        # 5. Normalize multiple spaces to single space
+        normalized = re.sub(r'\s+', ' ', normalized)
+        
+        # 6. Fix common PDF extraction artifacts
+        normalized = re.sub(r'\s*-\s*\n\s*', '', normalized)  # Hyphenated words
+        normalized = re.sub(r'\n\s*\n', '\n\n', normalized)  # Preserve paragraph breaks
+        
+        return normalized.strip()
     
     def _select_library(self) -> str:
         """Select the best available library."""
