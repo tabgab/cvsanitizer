@@ -1,0 +1,22 @@
+OK, so let us have an NPM graphical component that can run in a browser, 
+that displays the original CV PDF document, and then displays transparent 
+red boxes around the information that is marked for redaction 
+(red, but transparent so we can see what the information marked for deletion
+ is). The user can select a specific box and approve or delete it. 
+ The user can also "approve all", meaning that all still remaining "boxes" 
+ for redaction are accepted. 
+ The user may also mark new sections they think should be added to the 
+ "to be redacted" PII list. When the user presses approve all 
+ (the final step), the tool should present the user with a popup reading: 
+ "I have reviewed what personal information will be redacted before 
+ LLM processing and concede to submit the remaining information to 
+ LLM processing." (Agree / Reject). 
+ Upon rejection, the process should be interrupted. 
+ Upon Agereement, the tool should return ("Agreement verified"). 
+
+The cvsanitizer utility should only proceed with the redaction process if this
+crucial step has been secured, and a record of this agreement is stored
+inside the redacted cv json file.
+The only exception is "ignoreageement" mode, which is only for testing purposes
+when making enhancements to the detection, etc.
+Update the workflow, the readme, the documentation so that the utility works this way.

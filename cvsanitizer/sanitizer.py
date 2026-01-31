@@ -273,6 +273,23 @@ class CVSanitizer:
         
         return match
     
+    def record_llm_agreement(self, verified: bool = True):
+        """
+        Record LLM processing agreement.
+        
+        Args:
+            verified: Whether the user agreed to LLM processing
+        """
+        self.llm_agreement_verified = verified
+        self.llm_agreement_timestamp = datetime.now().isoformat()
+        
+        # Add to audit trail
+        self.user_edits.append({
+            'type': 'llm_agreement',
+            'verified': verified,
+            'timestamp': self.llm_agreement_timestamp
+        })
+    
     def generate_redaction(self) -> Tuple[str, Dict[str, str]]:
         """
         Generate redacted text and PII mapping.
@@ -354,10 +371,13 @@ class CVSanitizer:
             'user_edits_count': len(self.user_edits),
             'redacted_text': redacted_text,
             'pii_summary': self._generate_pii_summary(),
+            'llm_processing_agreement': getattr(self, 'llm_agreement_verified', False),
+            'llm_agreement_timestamp': getattr(self, 'llm_agreement_timestamp', None),
             'audit_trail': {
                 'user_edits': self.user_edits,
                 'processing_timestamp': datetime.now().isoformat(),
-                'version': '1.0.0'
+                'version': '1.0.0',
+                'llm_consent_obtained': getattr(self, 'llm_agreement_verified', False)
             }
         }
         

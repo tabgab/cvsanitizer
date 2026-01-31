@@ -130,7 +130,7 @@ class InteractiveCLI:
         self.sanitizer = CVSanitizer(country=country, pdf_library=pdf_library)
         self.current_pdf = None
     
-    def run(self, pdf_path: str, output_dir: Optional[str] = None, auto_confirm: bool = False):
+    def run(self, pdf_path: str, output_dir: Optional[str] = None, auto_confirm: bool = False, ignoreagreement: bool = False):
         """
         Run the interactive CLI.
         
@@ -138,7 +138,9 @@ class InteractiveCLI:
             pdf_path: Path to PDF file
             output_dir: Output directory for results
             auto_confirm: Skip interactive confirmation
+            ignoreagreement: Skip LLM processing agreement (testing only)
         """
+        self.ignoreagreement = ignoreagreement
         try:
             # Load PDF
             self.display.print_header("CV Sanitizer - PII Detection and Redaction")
@@ -172,6 +174,20 @@ class InteractiveCLI:
             
             # Show redaction summary
             self.show_redaction_summary(redacted_text, pii_mapping)
+            
+            # Check for LLM processing agreement (unless ignored)
+            if not self.ignoreagreement:
+                if not self.get_llm_processing_agreement():
+                    self.display.print_text("LLM processing agreement rejected. Processing cancelled.")
+                    return
+                else:
+                    # Record agreement
+                    self.sanitizer.record_llm_agreement(True)
+                    self.display.print_success("LLM processing agreement recorded.")
+            else:
+                self.display.print_text("Note: LLM processing agreement skipped (testing mode)")
+                # Record that agreement was skipped for testing
+                self.sanitizer.record_llm_agreement(False)
             
             # Confirm final processing
             if auto_confirm or self.display.confirm("Proceed with saving redacted files?"):
@@ -398,6 +414,32 @@ class InteractiveCLI:
         ]
         
         self.display.print_table(["Property", "Value"], rows)
+    
+    def get_llm_processing_agreement(self) -> bool:
+        """Get user agreement for LLM processing."""
+        self.display.print_header("LLM Processing Consent")
+        
+        # Show what will be redacted
+        detections = self.sanitizer.detected_pii
+        self.display.print_text("The following PII items will be redacted before LLM processing:")
+        
+        for i, match in enumerate(detections):
+            confidence_pct = int(match.confidence * 100)
+            self.display.print_text(
+                f"  • [{match.category.value}] {match.text} "
+                f"(confidence: {confidence_pct}%)"
+            )
+        
+        # Show consent message
+        consent_text = (
+            "I have reviewed what personal information will be redacted before "
+            "LLM processing and concede to submit the remaining information to LLM processing."
+        )
+        
+        self.display.print_text(f"\n{consent_text}")
+        
+        # Get user agreement
+        return self.display.confirm("Do you agree to proceed with LLM processing?")
 
 
 @click.command()
@@ -406,7 +448,8 @@ class InteractiveCLI:
 @click.option('--country', '-c', default='GB', help='Country code for PII detection')
 @click.option('--pdf-library', '-l', default='auto', help='PDF parsing library (auto/pymupdf/pdfplumber/pypdf2)')
 @click.option('--auto-confirm', '-y', is_flag=True, help='Skip interactive confirmation')
-def main(pdf_path: str, output_dir: str, country: str, pdf_library: str, auto_confirm: bool):
+@click.option('--ignoreagreement', is_flag=True, help='Skip LLM processing agreement (testing only)')
+def main(pdf_path: str, output_dir: str, country: str, pdf_library: str, auto_confirm: bool, ignoreagreement: bool):
     """
     CV Sanitizer - Remove PII from CVs before sending to LLMs.
     
@@ -421,7 +464,7 @@ def main(pdf_path: str, output_dir: str, country: str, pdf_library: str, auto_co
         print("Install with: pip install rich click")
     
     cli = InteractiveCLI(country=country, pdf_library=pdf_library)
-    cli.run(pdf_path, output_dir, auto_confirm)
+    cli.run(pdf_path, output_dir, auto_confirm, ignoreagreement)
 
 
 if __name__ == '__main__':

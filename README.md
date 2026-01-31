@@ -7,6 +7,8 @@ A Python utility to remove personally identifiable information (PII) from CVs be
 - **Rule-based PII Detection** - No AI required for privacy compliance
 - **Multi-country Support** - Localized patterns for UK, US, DE, FR, and more
 - **Interactive CLI** - Preview and confirm PII detections before redaction
+- **Web UI Interface** - Browser-based PII review with visual PDF overlay
+- **LLM Processing Consent** - Explicit user agreement before processing
 - **PDF Processing** - Support for multiple PDF parsing libraries
 - **JSON Output** - Structured output compatible with database models
 - **Audit Trail** - Complete tracking of user confirmations and edits
@@ -62,7 +64,8 @@ python cvsanitize.py my_cv.pdf \
   --output-dir ./output \
   --country GB \
   --pdf-library pymupdf \
-  --auto-confirm
+  --auto-confirm \
+  --ignoreagreement  # Skip LLM consent (testing only)
 
 # Help
 python cvsanitize.py --help
@@ -101,8 +104,31 @@ The CLI provides an interactive review process:
 1. **PII Detection** - Automatically detects PII using rule-based patterns
 2. **Preview** - Shows highlighted text with detected PII
 3. **Review** - Allows you to keep, remove, or edit detections
-4. **Confirmation** - Final confirmation before processing
-5. **Output** - Generates redacted JSON and PII mapping files
+4. **LLM Processing Consent** - Explicit agreement for LLM processing
+5. **Confirmation** - Final confirmation before processing
+6. **Output** - Generates redacted JSON and PII mapping files
+
+### Web UI Interface
+
+For a visual review experience, use the web UI:
+
+```bash
+# Start the web UI
+cd web-ui
+npm install
+npm start
+
+# Open browser to http://localhost:3000
+# Load PDF and PII data via URL parameters:
+# http://localhost:3000?pdf=path/to/cv.pdf&pii=path/to/cv.pii.json
+```
+
+Web UI features:
+- **Visual PDF Display** - See the original PDF with transparent red boxes
+- **Interactive Selection** - Click boxes to approve/remove PII
+- **Add New PII** - Manually mark additional PII sections
+- **Batch Operations** - Approve all or remove selected items
+- **LLM Consent Modal** - Required agreement before processing
 
 ## Node.js Usage
 
@@ -218,10 +244,12 @@ Each PII detection includes a confidence score:
       "address": 1
     }
   },
+  "llm_processing_agreement": true,
+  "llm_agreement_timestamp": "2024-01-01T12:05:00Z",
   "audit_trail": {
     "user_edits": [...],
     "processing_timestamp": "2024-01-01T12:00:00Z",
-    "version": "1.0.0"
+    "llm_consent_obtained": true
   }
 }
 ```
@@ -398,8 +426,20 @@ npm run test:coverage
 # Test with sample PDF
 python cvsanitize.py CV_Gabor_Tabi.pdf --auto-confirm
 
+# Test with LLM agreement (normal mode)
+python cvsanitize.py CV_Gabor_Tabi.pdf --country HU
+
+# Test with agreement bypass (testing mode)
+python cvsanitize.py CV_Gabor_Tabi.pdf --ignoreagreement
+
 # Test Node.js wrapper
 node tests/integration.js
+
+# Test Web UI
+cd web-ui
+npm install
+npm start
+# Open http://localhost:3000
 ```
 
 ## Development
@@ -423,6 +463,11 @@ pip install -r requirements-dev.txt
 
 # Install pre-commit hooks
 pre-commit install
+
+# Set up Web UI
+cd web-ui
+npm install
+cd ..
 ```
 
 ### Code Style
@@ -483,6 +528,26 @@ const sanitizer = new CVSanitizer({ pythonPath: 'python3' });
 
 # Verify dependencies
 node -e "console.log(require('child_process').spawnSync('python3', ['--version']))"
+```
+
+**LLM Agreement Issues**
+```bash
+# Bypass agreement for testing
+python cvsanitize.py cv.pdf --ignoreagreement
+
+# Check if agreement is recorded
+grep "llm_processing_agreement" output/*_redacted.json
+```
+
+**Web UI Issues**
+```bash
+# Check web UI dependencies
+cd web-ui && npm install
+
+# Start development server
+cd web-ui && npm start
+
+# Clear browser cache if PDF doesn't load
 ```
 
 ### Debug Mode
