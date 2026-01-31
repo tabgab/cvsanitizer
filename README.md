@@ -427,14 +427,15 @@ npm run test:coverage
 ### Integration Tests
 
 ```bash
-# Test with sample PDF
-python cvsanitize.py CV_Gabor_Tabi.pdf --auto-confirm
+# Test with sample PDF (German CV)
+python cvsanitize.py imaginary_test_cvs/CV_Hans_Mueller.pdf --country DE --auto-confirm
 
-# Test with LLM agreement (normal mode)
-python cvsanitize.py CV_Gabor_Tabi.pdf --country HU
+# Test with different countries
+python cvsanitize.py imaginary_test_cvs/CV_Jose_Garcia.pdf --country ES
+python cvsanitize.py imaginary_test_cvs/CV_Ahmed_Mohamed.pdf --country EG
 
 # Test with agreement bypass (testing mode)
-python cvsanitize.py CV_Gabor_Tabi.pdf --ignoreagreement
+python cvsanitize.py imaginary_test_cvs/CV_Carlos_Silva.pdf --country BR --ignoreagreement
 
 # Test Node.js wrapper
 node tests/integration.js

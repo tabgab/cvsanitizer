@@ -185,18 +185,45 @@ const App = () => {
     return () => document.removeEventListener('click', handleClick);
   }, [selectionPopup]);
 
+  // Available test CVs
+  const testCVs = [
+    'CV_Ahmed_Mohamed',
+    'CV_Carlos_Silva', 
+    'CV_Hans_Mueller',
+    'CV_Jose_Garcia',
+    'CV_Tanaka_Taro'
+  ];
+  
+  const [currentCV, setCurrentCV] = useState('');
+
   useEffect(() => {
-    loadData();
+    // Check URL parameter for CV name, otherwise pick random
+    const urlParams = new URLSearchParams(window.location.search);
+    const cvParam = urlParams.get('cv');
+    
+    let cvName;
+    if (cvParam) {
+      // Use provided CV name (strip .pdf extension if present)
+      cvName = cvParam.replace('.pdf', '').replace('.PDF', '');
+    } else {
+      // Pick random CV from test set
+      cvName = testCVs[Math.floor(Math.random() * testCVs.length)];
+    }
+    
+    setCurrentCV(cvName);
+    loadData(cvName);
   }, []);
 
-  const loadData = async () => {
+  const loadData = async (cvName) => {
+    if (!cvName) return;
+    
     try {
       setLoading(true);
       setError(null);
       
       // Load the redacted JSON which contains the extracted text
-      const redactedResponse = await fetch('/web-ui-test/CV_Gábor_Tabi_redacted.json');
-      if (!redactedResponse.ok) throw new Error(`Failed to fetch redacted data: ${redactedResponse.status}`);
+      const redactedResponse = await fetch(`/imaginary_test_cvs/${cvName}_redacted.json`);
+      if (!redactedResponse.ok) throw new Error(`Failed to fetch redacted data for ${cvName}: ${redactedResponse.status}`);
       
       const redactedJson = await redactedResponse.json();
       
@@ -204,8 +231,8 @@ const App = () => {
       let originalText = redactedJson.redacted_text || '';
       
       // Load PII data
-      const piiResponse = await fetch('/web-ui-test/CV_Gábor_Tabi.pii.json');
-      if (!piiResponse.ok) throw new Error(`Failed to fetch PII: ${piiResponse.status}`);
+      const piiResponse = await fetch(`/imaginary_test_cvs/${cvName}.pii.json`);
+      if (!piiResponse.ok) throw new Error(`Failed to fetch PII for ${cvName}: ${piiResponse.status}`);
       
       const piiJson = await piiResponse.json();
       const piiArray = Object.entries(piiJson).map(([id, data]) => ({
