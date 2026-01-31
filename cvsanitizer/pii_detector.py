@@ -64,57 +64,162 @@ class PIIDetector:
     def _compile_patterns(self):
         """Compile regex patterns for different PII types."""
         
-        # Email patterns (universal)
+        # Email patterns (enhanced with international domains and validation)
         self.email_patterns = [
-            r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
-            r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\.[A-Z|a-z]{2,}\b',  # .co.uk, .com.au
+            # Standard email with international domain support
+            r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}(?:\.[A-Za-z]{2,})?\b',
+            # Emails with subdomains and longer TLDs
+            r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,20}\b',
+            # Common business email patterns
+            r'\b[A-Za-z0-9._%+-]+(?:\.[A-Za-z0-9._%+-]+)*@(?:gmail|yahoo|outlook|hotmail|icloud|protonmail)\.[A-Za-z]{2,}\b',
+            # Corporate email patterns (firstname.lastname@company.com)
+            r'\b[A-Za-z]+\.[A-Za-z]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b',
+            # Emails with numbers and special characters
+            r'\b[A-Za-z0-9]+(?:[._%+-][A-Za-z0-9]+)*@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b',
         ]
         
-        # Phone patterns by country
+        # Phone patterns by country (enhanced with precise validation)
         self.phone_patterns = {
             'GB': [
-                r'\b(?:\+44\s?|0)(?:\d\s?){9,10}\b',  # UK mobile/landline
-                r'\b(?:\+44\s?|0)7\d{3}\s?\d{6}\b',  # UK mobile specific
-                r'\b(?:\+44\s?|0)20\d{4}\s?\d{4}\b',  # London
+                # UK mobile numbers (07xxx xxxxxx or +44 7xxx xxxxxx)
+                r'\b(?:\+44\s?7\d{3}\s?\d{6}|07\d{3}\s?\d{6})\b',
+                # UK landline numbers with area codes
+                r'\b(?:\+44\s?20\d{8}|\+44\s?1\d{9}|\+44\s?2\d{9}|020\d{8}|01\d{9}|02\d{9})\b',
+                # UK premium rate numbers
+                r'\b(?:\+44\s?9\d{9}|09\d{9})\b',
+                # UK free numbers
+                r'\b(?:\+44\s?80\d{8}|080\d{8})\b',
             ],
             'US': [
-                r'\b\+1[-.\s]?\(?[2-9]\d{2}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b',
-                r'\b[2-9]\d{2}[-.\s]?\d{3}[-.\s]?\d{4}\b',
+                # US numbers with area code validation
+                r'\b\+1[-.\s]?\(?([2-9]\d{2})\)?[-.\s]?([2-9]\d{2})[-.\s]?(\d{4})\b',
+                # US numbers without country code
+                r'\b([2-9]\d{2})[-.\s]?([2-9]\d{2})[-.\s]?(\d{4})\b',
+                # US toll-free numbers
+                r'\b\+1[-.\s]?(800|888|877|866|855|844|833)[-.]?(\d{3})[-.\s]?(\d{4})\b',
             ],
             'DE': [
-                r'\b\+49[-.\s]?\d{3,4}[-.\s]?\d{3,4}[-.\s]?\d{4}\b',
-                r'\b0\d{3,4}[-.\s]?\d{3,4}[-.\s]?\d{4}\b',
+                # German mobile numbers
+                r'\b(?:\+49\s?1[5-9]\d{1,2}\s?\d{7,8}|01[5-9]\d{1,2}\s?\d{7,8})\b',
+                # German landline numbers with area codes
+                r'\b(?:\+49\s?(\d{3,4})\s?(\d{7,8})|0(\d{3,4})\s?(\d{7,8}))\b',
             ],
             'FR': [
-                r'\b\+33[-.\s]?\d{1}[-.\s]?\d{2}[-.\s]?\d{2}[-.\s]?\d{2}[-.\s]?\d{2}\b',
-                r'\b0\d{1}[-.\s]?\d{2}[-.\s]?\d{2}[-.\s]?\d{2}[-.\s]?\d{2}\b',
+                # French mobile numbers
+                r'\b(?:\+33\s?6\d{8}|06\d{8})\b',
+                # French landline numbers
+                r'\b(?:\+33\s?1\d{8}|01\d{8})\b',
             ],
-            'INTL': r'\b\+?[1-9]\d{0,2}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}\b'
+            'CA': [
+                # Canadian numbers (similar to US but with specific area codes)
+                r'\b\+1[-.\s]?([2-9]\d{2})[-.\s]?(\d{3})[-.\s]?(\d{4})\b',
+                r'\b([2-9]\d{2})[-.\s]?(\d{3})[-.\s]?(\d{4})\b',
+            ],
+            'AU': [
+                # Australian mobile numbers
+                r'\b(?:\+61\s?4\d{8}|04\d{8})\b',
+                # Australian landline numbers
+                r'\b(?:\+61\s?[2-8]\d{8}|0[2-8]\d{8})\b',
+            ],
         }
         
-        # Postcode patterns by country
+        # Postcode patterns by country (enhanced with precise validation)
         self.postcode_patterns = {
-            'GB': r'\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b',
-            'US': r'\b\d{5}(?:-\d{4})?\b',
-            'DE': r'\b\d{5}\b',
-            'FR': r'\b\d{5}\b',
-            'CA': r'\b[A-Z]\d[A-Z]\s?\d[A-Z]\d\b',
-            'AU': r'\b\d{4}\b',
-            'NL': r'\b\d{4}\s?[A-Z]{2}\b',
+            'GB': [
+                # UK postcode patterns (enhanced)
+                r'\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b',  # Standard format
+                r'\b[A-Z]{2}\d{2}\s*\d[A-Z]{2}\b',          # Special cases like SW1A
+            ],
+            'US': [
+                # US ZIP codes
+                r'\b\d{5}(?:-\d{4})?\b',                    # 5-digit or ZIP+4
+            ],
+            'DE': [
+                # German postal codes (5 digits)
+                r'\b\d{5}\b',
+            ],
+            'FR': [
+                # French postal codes (5 digits)
+                r'\b\d{5}\b',
+            ],
+            'CA': [
+                # Canadian postal codes (A1A 1A1)
+                r'\b[A-Z]\d[A-Z]\s?\d[A-Z]\d\b',
+            ],
+            'AU': [
+                # Australian postal codes (4 digits)
+                r'\b\d{4}\b',
+            ],
+            'NL': [
+                # Dutch postal codes (1234 AB)
+                r'\b\d{4}\s?[A-Z]{2}\b',
+            ],
+            'IT': [
+                # Italian postal codes (5 digits)
+                r'\b\d{5}\b',
+            ],
+            'ES': [
+                # Spanish postal codes (5 digits)
+                r'\b\d{5}\b',
+            ],
+            'SE': [
+                # Swedish postal codes (3-digit or 5-digit)
+                r'\b\d{3}\s?\d{2}\b',
+            ],
         }
         
-        # National ID patterns
+        # National ID patterns (enhanced with more countries)
         self.national_id_patterns = {
-            'GB': r'\b[A-Z]{2}\d{6}[A-Z]?\b',  # National Insurance
-            'US': r'\b\d{3}-\d{2}-\d{4}\b',  # SSN
-            'DE': r'\b\d{10,11}\b',  # Steuerliche Identifikationsnummer
-            'FR': r'\b\d{13}\b',  # Numéro INSEE
+            'GB': [
+                # UK National Insurance Number
+                r'\b[A-Z]{2}\d{6}[A-Z]?\b',
+            ],
+            'US': [
+                # US Social Security Number
+                r'\b\d{3}-\d{2}-\d{4}\b',
+                r'\b\d{3}\s\d{2}\s\d{4}\b',  # Space separated
+            ],
+            'DE': [
+                # German Tax ID (Steuerliche Identifikationsnummer)
+                r'\b\d{10,11}\b',
+            ],
+            'FR': [
+                # French INSEE number
+                r'\b[1-4]\d{2}(0[1-9]|1[0-2])(?:0[1-9]|[1-3]\d|4[0-8])\d{8}\b',
+            ],
+            'CA': [
+                # Canadian Social Insurance Number
+                r'\b\d{3}-\d{3}-\d{3}\b',
+            ],
+            'AU': [
+                # Australian Tax File Number
+                r'\b\d{3}\s\d{3}\s\d{3}\b',
+                r'\b\d{9}\b',
+            ],
+            'IT': [
+                # Italian Codice Fiscale
+                r'\b[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]\b',
+            ],
+            'ES': [
+                # Spanish DNI/NIE
+                r'\b\d{8}[A-Z]\b',  # DNI
+                r'\b[A-Z]\d{7}[A-Z]\b',  # NIE
+            ],
+            'SE': [
+                # Swedish Personal Identity Number
+                r'\b\d{6}[-\s]?\d{4}\b',
+            ],
         }
         
-        # Passport patterns
+        # Passport patterns (enhanced with country-specific validation)
         self.passport_patterns = [
-            r'\b[A-Z]{1,2}\d{6,9}\b',
-            r'\b\d{8,9}[A-Z]\b',
+            # General passport patterns
+            r'\b[A-Z]{1,2}\d{6,9}\b',           # Letter(s) followed by digits
+            r'\b\d{8,9}[A-Z]\b',                 # Digits followed by letter
+            # Country-specific patterns
+            r'\b[A-Z]{2}\d{7}\b',               # US passport format
+            r'\b[A-Z]\d{7}[A-Z]\b',              # EU passport format
+            r'\b\d{9}[A-Z]{2}\b',               # Some Asian countries
         ]
         
         # Address indicators
@@ -125,26 +230,67 @@ class PIIDetector:
             'apartment', 'apt', 'suite', 'ste', 'unit', 'flat', '#'
         ]
         
-        # Social media patterns
+        # Social media patterns (enhanced with more platforms)
         self.social_patterns = {
-            'linkedin': r'linkedin\.com/in/[A-Za-z0-9\-_]+',
-            'twitter': r'twitter\.com/[A-Za-z0-9_]+',
-            'github': r'github\.com/[A-Za-z0-9\-_]+',
-            'facebook': r'facebook\.com/[A-Za-z0-9\.\-_/]+',
+            'linkedin': [
+                r'linkedin\.com/in/[A-Za-z0-9\-_]{3,50}',
+                r'linkedin\.com/company/[A-Za-z0-9\-_]{3,50}',
+                r'linkedin\.com/profile/view\?id=\d+',
+            ],
+            'twitter': [
+                r'twitter\.com/[A-Za-z0-9_]{1,15}',
+                r'x\.com/[A-Za-z0-9_]{1,15}',
+            ],
+            'github': [
+                r'github\.com/[A-Za-z0-9\-_]{1,39}',
+            ],
+            'facebook': [
+                r'facebook\.com/[A-Za-z0-9\.\-_/]{5,50}',
+                r'fb\.com/[A-Za-z0-9\.\-_/]{5,50}',
+            ],
+            'instagram': [
+                r'instagram\.com/[A-Za-z0-9\._]{1,30}',
+            ],
+            'youtube': [
+                r'youtube\.com/[A-Za-z0-9\-_]{1,50}',
+                r'youtu\.be/[A-Za-z0-9\-_]{11}',
+            ],
+            'tiktok': [
+                r'tiktok\.com/@[A-Za-z0-9\._]{1,24}',
+            ],
         }
         
-        # Name patterns (simplified - would need more sophisticated approach)
+        # Name patterns (enhanced with cultural variations)
         self.name_patterns = [
-            r'\b[A-Z][a-z]+\s+[A-Z][a-z]+\b',  # First Last
-            r'\b[A-Z][a-z]+\s+[A-Z]\.\s+[A-Z][a-z]+\b',  # First M. Last
-            r'\b[A-Z][a-z]+\s+[A-Z][a-z]+\s+[A-Z][a-z]+\b',  # First Middle Last
+            # Basic Western name patterns
+            r'\b[A-Z][a-z]+\s+[A-Z][a-z]+\b',                    # First Last
+            r'\b[A-Z][a-z]+\s+[A-Z]\.\s+[A-Z][a-z]+\b',          # First M. Last
+            r'\b[A-Z][a-z]+\s+[A-Z][a-z]+\s+[A-Z][a-z]+\b',      # First Middle Last
+            # Names with hyphens and apostrophes
+            r'\b[A-Z][a-zA-Z\-\'\s]+\s+[A-Z][a-zA-Z\-\'\s]+\b',  # Complex names
+            # Common name prefixes and suffixes
+            r'\b(?:Dr|Mr|Mrs|Ms|Prof|Sir|Lady)\.?\s+[A-Z][a-zA-Z\-\'\s]+\b',
+            # International name patterns (simplified)
+            r'\b[A-Z][a-zA-Z]+\s+[A-Z][a-zA-Z]+\s+[A-Z][a-zA-Z]+\b',  # Three-word names
+            # Names with special characters (European)
+            r'\b[A-Z][a-zA-Záéíóúñü]+\s+[A-Z][a-zA-Záéíóúñü]+\b',
         ]
         
-        # Date of birth patterns
+        # Date of birth patterns (enhanced with more formats)
         self.dob_patterns = [
+            # Explicit DOB indicators
             r'(?:date of birth|dob|born|birthday)[\s:]*\d{1,2}[/-]\d{1,2}[/-]\d{2,4}',
             r'(?:date of birth|dob|born|birthday)[\s:]*\d{2,4}[/-]\d{1,2}[/-]\d{1,2}',
+            # Age-related patterns
+            r'(?:age|aged?|years? old)[\s:]*\d{1,2}\s*(?:years?)?\s*(?:old)?',
             r'(?:age|born in)[\s:]*\d{4}',
+            # Date formats with context
+            r'\b(?:\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{2,4}[/-]\d{1,2}[/-]\d{1,2})\s*(?:\(?\d{1,2}\s*(?:years?|y\.o\.)\)?)',
+            # International date formats
+            r'\b\d{4}[-/.]\d{1,2}[-/.]\d{1,2}\b',  # YYYY-MM-DD
+            r'\b\d{1,2}[-/.]\d{1,2}[-/.]\d{4}\b',  # DD-MM-YYYY or MM-DD-YYYY
+            # DOB in personal info sections
+            r'(?:personal\s*details?|information|about\s*me|profile)[\s\S]*?(?:\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{2,4}[/-]\d{1,2}[/-]\d{1,2})',
         ]
     
     def detect_pii(self, text: str, country: Optional[str] = None) -> List[PIIMatch]:
@@ -181,22 +327,30 @@ class PIIDetector:
         return matches
     
     def _detect_emails(self, text: str) -> List[PIIMatch]:
-        """Detect email addresses."""
+        """Detect email addresses with enhanced validation."""
         matches = []
+        seen_emails = set()  # Avoid duplicates
+        
         for pattern in self.email_patterns:
             for match in re.finditer(pattern, text, re.IGNORECASE):
-                matches.append(PIIMatch(
-                    category=PIICategory.EMAIL,
-                    text=match.group(),
-                    start=match.start(),
-                    end=match.end(),
-                    confidence=0.9
-                ))
+                email = match.group().lower()
+                if email not in seen_emails:
+                    seen_emails.add(email)
+                    # Enhanced confidence scoring
+                    confidence = self._calculate_email_confidence(email)
+                    matches.append(PIIMatch(
+                        category=PIICategory.EMAIL,
+                        text=match.group(),
+                        start=match.start(),
+                        end=match.end(),
+                        confidence=confidence
+                    ))
         return matches
     
     def _detect_phones(self, text: str, country: str) -> List[PIIMatch]:
         """Detect phone numbers with country-specific patterns."""
         matches = []
+        seen_phones = set()  # Avoid duplicates
         
         # Try country-specific patterns first
         if country in self.phone_patterns:
@@ -204,28 +358,19 @@ class PIIDetector:
             if isinstance(patterns, list):
                 for pattern in patterns:
                     for match in re.finditer(pattern, text):
-                        # Validate with phonenumbers library if available
-                        if self._validate_phone(match.group(), country):
-                            matches.append(PIIMatch(
-                                category=PIICategory.PHONE,
-                                text=match.group(),
-                                start=match.start(),
-                                end=match.end(),
-                                confidence=0.8,
-                                country_code=country
-                            ))
-        
-        # Fallback to international pattern
-        for match in re.finditer(self.phone_patterns['INTL'], text):
-            if self._validate_phone(match.group(), country):
-                matches.append(PIIMatch(
-                    category=PIICategory.PHONE,
-                    text=match.group(),
-                    start=match.start(),
-                    end=match.end(),
-                    confidence=0.6,
-                    country_code=country
-                ))
+                        phone = re.sub(r'[^\d+]', '', match.group())
+                        if phone not in seen_phones and len(phone) >= 7:
+                            seen_phones.add(phone)
+                            if self._validate_phone(match.group(), country):
+                                confidence = self._calculate_phone_confidence(match.group(), country)
+                                matches.append(PIIMatch(
+                                    category=PIICategory.PHONE,
+                                    text=match.group(),
+                                    start=match.start(),
+                                    end=match.end(),
+                                    confidence=confidence,
+                                    country_code=country
+                                ))
         
         return matches
     
@@ -246,20 +391,40 @@ class PIIDetector:
             return len(cleaned) >= 7 and len(cleaned) <= 15
     
     def _detect_postcodes(self, text: str, country: str) -> List[PIIMatch]:
-        """Detect postal codes."""
+        """Detect postal codes with country-specific patterns."""
         matches = []
+        seen_postcodes = set()  # Avoid duplicates
         
         if country in self.postcode_patterns:
-            pattern = self.postcode_patterns[country]
-            for match in re.finditer(pattern, text, re.IGNORECASE):
-                matches.append(PIIMatch(
-                    category=PIICategory.POSTCODE,
-                    text=match.group(),
-                    start=match.start(),
-                    end=match.end(),
-                    confidence=0.7,
-                    country_code=country
-                ))
+            patterns = self.postcode_patterns[country]
+            if isinstance(patterns, list):
+                for pattern in patterns:
+                    for match in re.finditer(pattern, text, re.IGNORECASE):
+                        postcode = match.group().upper().replace(' ', '')
+                        if postcode not in seen_postcodes:
+                            seen_postcodes.add(postcode)
+                            matches.append(PIIMatch(
+                                category=PIICategory.POSTCODE,
+                                text=match.group(),
+                                start=match.start(),
+                                end=match.end(),
+                                confidence=0.7,
+                                country_code=country
+                            ))
+            else:
+                # Handle string patterns (backward compatibility)
+                for match in re.finditer(patterns, text, re.IGNORECASE):
+                    postcode = match.group().upper().replace(' ', '')
+                    if postcode not in seen_postcodes:
+                        seen_postcodes.add(postcode)
+                        matches.append(PIIMatch(
+                            category=PIICategory.POSTCODE,
+                            text=match.group(),
+                            start=match.start(),
+                            end=match.end(),
+                            confidence=0.7,
+                            country_code=country
+                        ))
         
         return matches
     
@@ -307,20 +472,40 @@ class PIIDetector:
         return has_number and (has_keyword or len(text.split()) >= 3)
     
     def _detect_national_ids(self, text: str, country: str) -> List[PIIMatch]:
-        """Detect national ID numbers."""
+        """Detect national ID numbers with country-specific patterns."""
         matches = []
+        seen_ids = set()  # Avoid duplicates
         
         if country in self.national_id_patterns:
-            pattern = self.national_id_patterns[country]
-            for match in re.finditer(pattern, text):
-                matches.append(PIIMatch(
-                    category=PIICategory.NATIONAL_ID,
-                    text=match.group(),
-                    start=match.start(),
-                    end=match.end(),
-                    confidence=0.8,
-                    country_code=country
-                ))
+            patterns = self.national_id_patterns[country]
+            if isinstance(patterns, list):
+                for pattern in patterns:
+                    for match in re.finditer(pattern, text):
+                        id_text = match.group()
+                        if id_text not in seen_ids:
+                            seen_ids.add(id_text)
+                            matches.append(PIIMatch(
+                                category=PIICategory.NATIONAL_ID,
+                                text=id_text,
+                                start=match.start(),
+                                end=match.end(),
+                                confidence=0.8,
+                                country_code=country
+                            ))
+            else:
+                # Handle string patterns (backward compatibility)
+                for match in re.finditer(patterns, text):
+                    id_text = match.group()
+                    if id_text not in seen_ids:
+                        seen_ids.add(id_text)
+                        matches.append(PIIMatch(
+                            category=PIICategory.NATIONAL_ID,
+                            text=id_text,
+                            start=match.start(),
+                            end=match.end(),
+                            confidence=0.8,
+                            country_code=country
+                        ))
         
         return matches
     
@@ -349,20 +534,44 @@ class PIIDetector:
         return 8 <= len(text) <= 9 and re.search(r'[A-Z]', text) and re.search(r'\d', text)
     
     def _detect_social_media(self, text: str) -> List[PIIMatch]:
-        """Detect social media profiles."""
+        """Detect social media profiles with enhanced platform support."""
         matches = []
+        seen_profiles = set()  # Avoid duplicates
         
-        for platform, pattern in self.social_patterns.items():
-            for match in re.finditer(pattern, text, re.IGNORECASE):
-                category = PIICategory.LINKEDIN if platform == 'linkedin' else PIICategory.SOCIAL_MEDIA
-                matches.append(PIIMatch(
-                    category=category,
-                    text=match.group(),
-                    start=match.start(),
-                    end=match.end(),
-                    confidence=0.9,
-                    metadata={'platform': platform}
-                ))
+        for platform, patterns in self.social_patterns.items():
+            if isinstance(patterns, list):
+                for pattern in patterns:
+                    for match in re.finditer(pattern, text, re.IGNORECASE):
+                        profile = match.group().lower()
+                        if profile not in seen_profiles:
+                            seen_profiles.add(profile)
+                            # Determine category based on platform
+                            category = PIICategory.LINKEDIN if platform == 'linkedin' else PIICategory.SOCIAL_MEDIA
+                            confidence = self._calculate_social_confidence(match.group(), platform)
+                            matches.append(PIIMatch(
+                                category=category,
+                                text=match.group(),
+                                start=match.start(),
+                                end=match.end(),
+                                confidence=confidence,
+                                metadata={'platform': platform}
+                            ))
+            else:
+                # Handle string patterns (backward compatibility)
+                for match in re.finditer(patterns, text, re.IGNORECASE):
+                    profile = match.group().lower()
+                    if profile not in seen_profiles:
+                        seen_profiles.add(profile)
+                        category = PIICategory.LINKEDIN if platform == 'linkedin' else PIICategory.SOCIAL_MEDIA
+                        confidence = self._calculate_social_confidence(match.group(), platform)
+                        matches.append(PIIMatch(
+                            category=category,
+                            text=match.group(),
+                            start=match.start(),
+                            end=match.end(),
+                            confidence=confidence,
+                            metadata={'platform': platform}
+                        ))
         
         return matches
     
@@ -461,3 +670,70 @@ class PIIDetector:
     def get_redaction_placeholder(self, match: PIIMatch, serial: int) -> str:
         """Generate a redaction placeholder for a PII match."""
         return f'<pii type="{match.category.value}" serial="{serial}">'
+    
+    def _calculate_email_confidence(self, email: str) -> float:
+        """Calculate confidence score for email detection."""
+        confidence = 0.5  # Base confidence
+        
+        # Check for common email providers
+        common_providers = ['gmail', 'yahoo', 'outlook', 'hotmail', 'icloud', 'protonmail']
+        if any(provider in email for provider in common_providers):
+            confidence += 0.2
+        
+        # Check for corporate email patterns
+        if '.' in email.split('@')[0] and len(email.split('@')[0].split('.')) >= 2:
+            confidence += 0.2
+        
+        # Check domain validity
+        domain = email.split('@')[1] if '@' in email else ''
+        if '.' in domain and len(domain.split('.')) >= 2:
+            confidence += 0.1
+        
+        return min(confidence, 0.95)
+    
+    def _calculate_phone_confidence(self, phone: str, country: str) -> float:
+        """Calculate confidence score for phone detection."""
+        confidence = 0.6  # Base confidence
+        
+        # Country-specific validation
+        if country == 'GB':
+            if phone.startswith('+44') or phone.startswith('0'):
+                confidence += 0.2
+            if '7' in phone and len(re.sub(r'[^\d]', '', phone)) == 11:  # UK mobile
+                confidence += 0.1
+        elif country == 'US':
+            if phone.startswith('+1') or len(re.sub(r'[^\d]', '', phone)) == 10:
+                confidence += 0.2
+            if any(code in phone for code in ['800', '888', '877', '866']):  # Toll-free
+                confidence += 0.1
+        
+        # Format validation
+        if re.search(r'[\s\-\.\(\)]', phone):  # Proper formatting
+            confidence += 0.1
+        
+        return min(confidence, 0.9)
+    
+    def _calculate_social_confidence(self, profile: str, platform: str) -> float:
+        """Calculate confidence score for social media detection."""
+        confidence = 0.7  # Base confidence
+        
+        # Platform-specific validation
+        if platform == 'linkedin':
+            if '/in/' in profile:
+                confidence += 0.2
+            elif '/company/' in profile:
+                confidence += 0.1
+        elif platform == 'twitter' or platform == 'x':
+            username = profile.split('/')[-1] if '/' in profile else profile
+            if 1 <= len(username) <= 15:
+                confidence += 0.2
+        elif platform == 'github':
+            username = profile.split('/')[-1] if '/' in profile else profile
+            if 1 <= len(username) <= 39:
+                confidence += 0.2
+        
+        # HTTPS protocol
+        if profile.startswith('https://'):
+            confidence += 0.1
+        
+        return min(confidence, 0.95)
