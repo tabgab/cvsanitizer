@@ -246,6 +246,7 @@ class PIIDetector:
         
         # Social media patterns (enhanced with more platforms)
         # Include optional https://www. prefix to capture full URLs
+        # Also includes standalone @handles for Twitter/Instagram
         self.social_patterns = {
             'linkedin': [
                 r'(?:https?://)?(?:www\.)?linkedin\.com/in/[A-Za-z0-9\-_]{3,50}/?',
@@ -255,6 +256,8 @@ class PIIDetector:
             'twitter': [
                 r'(?:https?://)?(?:www\.)?twitter\.com/[A-Za-z0-9_]{1,15}/?',
                 r'(?:https?://)?(?:www\.)?x\.com/[A-Za-z0-9_]{1,15}/?',
+                r'(?:Twitter|twitter):\s*@[A-Za-z0-9_]{1,15}',  # Twitter: @handle
+                r'@[A-Za-z0-9_]{3,15}(?=\s|$)',  # Standalone @handle (3+ chars to reduce false positives)
             ],
             'github': [
                 r'(?:https?://)?(?:www\.)?github\.com/[A-Za-z0-9\-_]{1,39}/?',
@@ -265,6 +268,7 @@ class PIIDetector:
             ],
             'instagram': [
                 r'(?:https?://)?(?:www\.)?instagram\.com/[A-Za-z0-9\._]{1,30}/?',
+                r'(?:Instagram|instagram):\s*@[A-Za-z0-9\._]{1,30}',  # Instagram: @handle
             ],
             'youtube': [
                 r'(?:https?://)?(?:www\.)?youtube\.com/[A-Za-z0-9\-_]{1,50}/?',
@@ -272,6 +276,10 @@ class PIIDetector:
             ],
             'tiktok': [
                 r'(?:https?://)?(?:www\.)?tiktok\.com/@[A-Za-z0-9\._]{1,24}/?',
+            ],
+            'website': [
+                r'(?:Portfolio|Website|Web|Site|Blog):\s*(?:https?://)?[A-Za-z0-9][A-Za-z0-9\-]*\.[A-Za-z]{2,}(?:/[A-Za-z0-9\-._~:/?#\[\]@!$&\'()*+,;=]*)?',  # Portfolio: URL
+                r'(?:https?://)?[A-Za-z0-9][A-Za-z0-9\-]*\.(?:dev|io|me|tech|design|art|portfolio|works|page)/?',  # Personal domains
             ],
         }
         
