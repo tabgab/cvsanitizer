@@ -245,32 +245,33 @@ class PIIDetector:
         ]
         
         # Social media patterns (enhanced with more platforms)
+        # Include optional https://www. prefix to capture full URLs
         self.social_patterns = {
             'linkedin': [
-                r'linkedin\.com/in/[A-Za-z0-9\-_]{3,50}',
-                r'linkedin\.com/company/[A-Za-z0-9\-_]{3,50}',
-                r'linkedin\.com/profile/view\?id=\d+',
+                r'(?:https?://)?(?:www\.)?linkedin\.com/in/[A-Za-z0-9\-_]{3,50}/?',
+                r'(?:https?://)?(?:www\.)?linkedin\.com/company/[A-Za-z0-9\-_]{3,50}/?',
+                r'(?:https?://)?(?:www\.)?linkedin\.com/profile/view\?id=\d+',
             ],
             'twitter': [
-                r'twitter\.com/[A-Za-z0-9_]{1,15}',
-                r'x\.com/[A-Za-z0-9_]{1,15}',
+                r'(?:https?://)?(?:www\.)?twitter\.com/[A-Za-z0-9_]{1,15}/?',
+                r'(?:https?://)?(?:www\.)?x\.com/[A-Za-z0-9_]{1,15}/?',
             ],
             'github': [
-                r'github\.com/[A-Za-z0-9\-_]{1,39}',
+                r'(?:https?://)?(?:www\.)?github\.com/[A-Za-z0-9\-_]{1,39}/?',
             ],
             'facebook': [
-                r'facebook\.com/[A-Za-z0-9\.\-_/]{5,50}',
-                r'fb\.com/[A-Za-z0-9\.\-_/]{5,50}',
+                r'(?:https?://)?(?:www\.)?facebook\.com/[A-Za-z0-9\.\-_/]{5,50}/?',
+                r'(?:https?://)?(?:www\.)?fb\.com/[A-Za-z0-9\.\-_/]{5,50}/?',
             ],
             'instagram': [
-                r'instagram\.com/[A-Za-z0-9\._]{1,30}',
+                r'(?:https?://)?(?:www\.)?instagram\.com/[A-Za-z0-9\._]{1,30}/?',
             ],
             'youtube': [
-                r'youtube\.com/[A-Za-z0-9\-_]{1,50}',
-                r'youtu\.be/[A-Za-z0-9\-_]{11}',
+                r'(?:https?://)?(?:www\.)?youtube\.com/[A-Za-z0-9\-_]{1,50}/?',
+                r'(?:https?://)?youtu\.be/[A-Za-z0-9\-_]{11}/?',
             ],
             'tiktok': [
-                r'tiktok\.com/@[A-Za-z0-9\._]{1,24}',
+                r'(?:https?://)?(?:www\.)?tiktok\.com/@[A-Za-z0-9\._]{1,24}/?',
             ],
         }
         
@@ -342,7 +343,79 @@ class PIIDetector:
         matches = sorted(matches, key=lambda x: x.start)
         matches = self._remove_overlaps(matches)
         
+        # Merge adjacent address components (street, postcode, city, country)
+        matches = self._merge_adjacent_addresses(matches, text)
+        
         return matches
+    
+    def _merge_adjacent_addresses(self, matches: List[PIIMatch], text: str) -> List[PIIMatch]:
+        """Merge adjacent address-related PII items into single address entries."""
+        if len(matches) < 2:
+            return matches
+        
+        address_types = {PIICategory.ADDRESS, PIICategory.POSTCODE}
+        result = []
+        i = 0
+        
+        while i < len(matches):
+            current = matches[i]
+            
+            # Check if this is an address-related match
+            if current.category in address_types:
+                # Look for adjacent address components
+                merged_text = current.text
+                merged_start = current.start
+                merged_end = current.end
+                j = i + 1
+                
+                while j < len(matches):
+                    next_match = matches[j]
+                    
+                    # Check if next match is also address-related
+                    if next_match.category not in address_types:
+                        break
+                    
+                    # Check if they are adjacent (within ~50 chars, allowing for punctuation/whitespace)
+                    gap_start = merged_end
+                    gap_end = next_match.start
+                    
+                    if gap_end - gap_start > 50:
+                        break
+                    
+                    # Get the text between the matches
+                    gap_text = text[gap_start:gap_end]
+                    
+                    # Only merge if gap contains only whitespace, punctuation, or common separators
+                    # Also allow country names like "Hungary" in the gap
+                    if re.match(r'^[\s,.\-–;:]*(?:[A-Z][a-záéíóúöüőű]+)?[\s,.\-–;:]*$', gap_text):
+                        # Merge this match
+                        merged_text = text[merged_start:next_match.end]
+                        merged_end = next_match.end
+                        j += 1
+                    else:
+                        break
+                
+                # Create merged address if we merged anything
+                if j > i + 1:
+                    # Clean up merged text
+                    merged_text = re.sub(r'\s+', ' ', merged_text).strip()
+                    result.append(PIIMatch(
+                        category=PIICategory.ADDRESS,
+                        text=merged_text,
+                        start=merged_start,
+                        end=merged_end,
+                        confidence=0.85,
+                        metadata={'merged': True, 'components': j - i}
+                    ))
+                    i = j
+                else:
+                    result.append(current)
+                    i += 1
+            else:
+                result.append(current)
+                i += 1
+        
+        return result
     
     def _detect_emails(self, text: str) -> List[PIIMatch]:
         """Detect email addresses with enhanced validation."""

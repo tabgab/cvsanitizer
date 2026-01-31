@@ -119,16 +119,20 @@ npm install
 npm start
 
 # Open browser to http://localhost:3000
-# Load PDF and PII data via URL parameters:
-# http://localhost:3000?pdf=path/to/cv.pdf&pii=path/to/cv.pii.json
 ```
 
 Web UI features:
-- **Visual PDF Display** - See the original PDF with transparent red boxes
-- **Interactive Selection** - Click boxes to approve/remove PII
-- **Add New PII** - Manually mark additional PII sections
-- **Batch Operations** - Approve all or remove selected items
+- **Custom CV Viewer** - Renders extracted text with inline PII highlighting
+- **Interactive Selection** - Click highlighted PII boxes to select/deselect
+- **Graphical PII Editing**:
+  - **Text Selection** - Select any text and click to add as new PII (Name, Email, Phone, Address, LinkedIn, Nationality, or custom "Other" type)
+  - **Drag Handles** - Drag the edges of PII boxes to extend/shrink boundaries
+  - **Merge Boxes** - Select multiple adjacent boxes and merge them into one
+  - **Delete False Positives** - Remove incorrectly detected PII items
+  - **Edit Boundaries** - Modify PII text via edit modal
+- **Batch Operations** - Select All, Deselect, Approve All, Approve Selected
 - **LLM Consent Modal** - Required agreement before processing
+- **Export Results** - Download approved PII as JSON
 
 ## Node.js Usage
 
@@ -598,6 +602,21 @@ MIT License - see LICENSE file for details.
 - **Discussions**: [GitHub Discussions](https://github.com/tabgab/cvsanitizer/discussions)
 
 ## Changelog
+
+### v1.1.0 (2026-01-31)
+- **Web UI Overhaul** - Complete rewrite with custom CV viewer
+  - Graphical PII editing: text selection, drag handles, merge, delete
+  - Inline PII highlighting with colored boxes
+  - Nationality and custom "Other" PII type support
+  - Click outside to deselect, improved UX
+- **Improved PII Detection**
+  - Full URL detection for LinkedIn and social media (includes https://www.)
+  - Auto-merge adjacent address components (street + postcode + city)
+  - Single occurrence highlighting (prevents duplicate word redaction)
+- **PDF Text Extraction Fixes**
+  - Preserved line breaks and document structure
+  - Fixed URL joining with section headers
+  - Better handling of international characters
 
 ### v1.0.0 (2024-01-01)
 - Initial release

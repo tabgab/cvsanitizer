@@ -115,41 +115,46 @@ class PDFParser:
     
     def _normalize_pdf_text(self, text: str) -> str:
         """
-        Normalize PDF text for better PII detection.
+        Normalize PDF text for better PII detection while preserving structure.
         
-        This method handles line breaks and text fragmentation issues
-        that commonly occur in PDF text extraction.
+        This method carefully handles line breaks and text fragmentation issues
+        that commonly occur in PDF text extraction, without destroying document structure.
         
         Args:
             text: Raw extracted text from PDF
             
         Returns:
-            Normalized text optimized for PII detection
+            Normalized text optimized for PII detection with preserved structure
         """
         if not text:
             return text
         
-        # Preserve important structure while fixing fragmentation
         normalized = text
         
-        # 1. Fix fragmented phone numbers (digits separated by line breaks)
-        normalized = re.sub(r'(\d)\s*\n\s*(\d)', r'\1\2', normalized)
+        # 1. Fix hyphenated words at end of lines (word- \n continuation)
+        normalized = re.sub(r'(\w)-\s*\n\s*(\w)', r'\1\2', normalized)
         
-        # 2. Fix fragmented addresses (words separated by line breaks)
-        normalized = re.sub(r'([a-zA-ZáéíóúñüÁÉÍÓÚÑÜ])\s*\n\s*([a-zA-ZáéíóúñüÁÉÍÓÚÑÜ])', r'\1\2', normalized)
+        # 2. Fix fragmented phone numbers (digits separated by line breaks within same number)
+        # Only join if it looks like a phone number pattern
+        normalized = re.sub(r'(\+?\d{1,3})\s*\n\s*(\d)', r'\1 \2', normalized)
         
-        # 3. Fix fragmented email addresses
-        normalized = re.sub(r'([a-zA-Z0-9._%+-])\s*\n\s*([a-zA-Z0-9._%+-])', r'\1\2', normalized)
+        # 3. Fix fragmented email addresses (only if @ is involved)
+        normalized = re.sub(r'(\S+@\S+)\s*\n\s*(\S+\.\S+)', r'\1\2', normalized)
+        normalized = re.sub(r'(\S+)\s*\n\s*(@\S+)', r'\1\2', normalized)
         
-        # 4. Fix fragmented URLs and social media
-        normalized = re.sub(r'([a-zA-Z0-9\-._/])\s*\n\s*([a-zA-Z0-9\-._/])', r'\1\2', normalized)
+        # 4. Fix fragmented URLs (only join if next part looks like URL continuation, not a section header)
+        # Only join if the next part contains URL characters like dots, slashes, or lowercase
+        normalized = re.sub(r'(https?://\S+)\s*\n\s*([a-z0-9][a-z0-9._/-]*)', r'\1\2', normalized)
+        normalized = re.sub(r'(www\.)\s*\n\s*([a-z0-9][a-z0-9._/-]*)', r'\1\2', normalized)
         
-        # 5. Normalize multiple spaces to single space
-        normalized = re.sub(r'\s+', ' ', normalized)
+        # 5. Normalize multiple spaces on same line to single space (but preserve newlines)
+        normalized = re.sub(r'[^\S\n]+', ' ', normalized)
         
-        # 6. Fix common PDF extraction artifacts
-        normalized = re.sub(r'\s*-\s*\n\s*', '', normalized)  # Hyphenated words
-        normalized = re.sub(r'\n\s*\n', '\n\n', normalized)  # Preserve paragraph breaks
+        # 6. Normalize multiple blank lines to double newline (paragraph break)
+        normalized = re.sub(r'\n\s*\n\s*\n+', '\n\n', normalized)
+        
+        # 7. Remove trailing spaces from lines
+        normalized = re.sub(r' +\n', '\n', normalized)
         
         return normalized.strip()
     

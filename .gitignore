@@ -68,3 +68,8 @@ yarn.lock
 .aws/
 *.zip
 lambda-deployment.zip
+
+# test CV file of my own
+CV_Gábor_Tabi.pdf
+CV_Gábor_Tabi.pii.json
+CV_Gábor_Tabi_redacted.json
