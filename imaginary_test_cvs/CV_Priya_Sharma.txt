@@ -1,0 +1,56 @@
+RESUME
+
+PERSONAL DETAILS
+Name: Priya Sharma
+DOB: 28-12-1992
+Age: 31 years
+Nationality: Indian
+Permanent Address: Flat 205, Sapphire Towers, Powai, Mumbai 400076, Maharashtra, India
+Current Location: Bangalore, Karnataka
+Mobile: +91 98765 43210
+Alternate Phone: 022 2345 6789
+Email: priya.sharma.1992@gmail.com
+Personal Email: priya@sharma-family.in
+LinkedIn: https://www.linkedin.com/in/priyasharma1992
+Twitter: @priya_sharma_tech
+Portfolio: https://priyasharma.dev
+
+EDUCATION
+2014-2016: Indian Institute of Technology Bombay - M.Tech Computer Science
+2010-2014: Delhi University - B.Tech Information Technology (CGPA: 8.5/10)
+2008-2010: Delhi Public School R.K. Puram - Class XII (92%)
+2000-2008: Delhi Public School R.K. Puram - Class X (95%)
+
+PROFESSIONAL EXPERIENCE
+2021-Present: Senior Machine Learning Engineer at Microsoft IDC, Bangalore
+2019-2021: Data Scientist at Flipkart, Bangalore
+2016-2019: Software Developer at Infosys, Pune
+
+TECHNICAL SKILLS
+Programming Languages: Python, R, Java, C++, JavaScript
+ML/DL Frameworks: TensorFlow, PyTorch, Keras, Scikit-learn
+Cloud Platforms: AWS, Azure, GCP
+Databases: SQL, NoSQL, MongoDB, PostgreSQL
+Tools: Docker, Kubernetes, Git, Jenkins
+
+CERTIFICATIONS
+- AWS Certified Machine Learning Specialist (2020)
+- Google Professional Data Engineer (2019)
+- Microsoft Certified: Azure Data Scientist Associate (2018)
+
+PROJECTS
+- Real-time Fraud Detection System for Financial Transactions
+- Customer Churn Prediction Model for E-commerce Platform
+- Natural Language Processing for Sentiment Analysis of Social Media
+
+LANGUAGES
+English (Fluent), Hindi (Native), Sanskrit (Basic), French (Beginner)
+
+HOBBIES
+Classical Indian Dance, Photography, Blogging, Open Source Contributions
+
+REFERENCES
+Prof. Rajesh Kumar - IIT Bombay (rajesh.kumar@iitb.ac.in)
+Mr. Amit Patel - Microsoft (amit.patel@microsoft.com)
+
+Bangalore, 15th January 2024

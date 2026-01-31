@@ -1,0 +1,67 @@
+RESUME
+
+PERSONAL INFORMATION
+Name: Sofia Källström
+Date of Birth: 1994-06-18
+Age: 29
+Nationality: Swedish
+Personnummer: 940618-1234
+Address: Drottninggatan 123, 4 tr, 111 36 Stockholm, Sweden
+Phone: +46 8 123 45 67
+Mobile: +46 70 123 45 67
+Email: sofia.kallstrom@ericsson.com
+Personal Email: sofia.k94@gmail.com
+LinkedIn: https://se.linkedin.com/in/sofiakallstrom
+GitHub: https://github.com/sofiak94
+Twitter: @sofia_k_tech
+Instagram: @sofia.stockholm
+
+EDUCATION
+2017-2019: KTH Royal Institute of Technology - MS in Computer Science
+2014-2017: Uppsala University - BS in Information Systems
+2011-2014: Kungsholmens Gymnasium - Natural Sciences Program
+
+PROFESSIONAL EXPERIENCE
+2020-Present: Senior Software Engineer at Ericsson, Stockholm
+2019-2020: Full Stack Developer at Spotify, Stockholm
+2017-2019: Junior Developer at Klarna, Stockholm
+
+TECHNICAL EXPERTISE
+Languages: Python, Java, JavaScript, TypeScript, Go, C#
+Frameworks: Spring Boot, React, Node.js, Django, Flask, .NET Core
+Cloud: AWS, Google Cloud, Azure, DigitalOcean
+Databases: PostgreSQL, MySQL, MongoDB, Redis, Cassandra
+DevOps: Docker, Kubernetes, Terraform, Ansible, GitLab CI/CD
+
+CERTIFICATIONS
+- AWS Certified Solutions Architect (2020)
+- Certified Kubernetes Administrator (2019)
+- Scrum Master Certified (2018)
+- ISTQB Certified Tester (2017)
+
+PROJECTS
+- 5G Network Optimization Platform (Ericsson)
+- Music Recommendation Algorithm (Spotify)
+- Payment Processing System (Klarna)
+- Real-time Analytics Dashboard (Various)
+
+LANGUAGES
+Swedish (Native), English (Fluent - Cambridge C1), German (Intermediate), Spanish (Basic)
+
+ADDITIONAL INFORMATION
+Driving Licence: B (Car)
+Work Authorization: EU Citizen
+Security Clearance: Swedish Government Level 1
+Interests: Cross-country skiing, ice skating, Nordic literature, sustainable technology, fika
+
+VOLUNTEER WORK
+- Coding mentor for Girls Who Code Sweden
+- Hackathon judge for Stockholm Tech Week
+- Open source contributor to Swedish digital infrastructure projects
+
+REFERENCES
+Available upon request
+- Erik Lindberg (Engineering Manager at Ericsson)
+- Anna Johansson (Tech Lead at Spotify)
+
+Stockholm, 15 January 2024

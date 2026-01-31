@@ -1,0 +1,59 @@
+RESUME
+
+PERSONAL INFORMATION
+Name: Chen Wei Zhang
+Date of Birth: 1995-04-22
+Age: 28
+Nationality: Chinese (Mainland)
+Passport Number: G12345678
+Address: Room 1808, Building 7, Sky Garden Complex, 888 Lujiazui Road, Pudong New Area, Shanghai 200120, China
+Phone: +86 21 5888 1234
+Mobile: +86 138 1234 5678
+WeChat: zhangchenwei1988
+Email: zhang.chenwei@alibaba-inc.com
+Personal Email: chenwei.zhang@gmail.com
+LinkedIn: https://cn.linkedin.com/in/chenweizhang
+GitHub: https://github.com/cwzhang1988
+Twitter: @cwzhang_tech
+
+EDUCATION
+2017-2019: Stanford University - MS in Computer Science (Full Scholarship)
+2013-2017: Tsinghua University - BS in Computer Science (GPA: 3.9/4.0)
+2009-2013: Shanghai High School - International Baccalaureate (42/45)
+
+WORK EXPERIENCE
+2021-Present: Senior AI Researcher at Alibaba DAMO Academy, Hangzhou
+2019-2021: Machine Learning Engineer at Google Brain, Mountain View
+2017-2019: Research Intern at Microsoft Research Asia, Beijing
+
+TECHNICAL EXPERTISE
+Programming: Python, C++, Java, Go, Rust
+Machine Learning: Deep Learning, NLP, Computer Vision, Reinforcement Learning
+Frameworks: TensorFlow, PyTorch, MXNet, Scikit-learn
+Cloud: Alibaba Cloud, AWS, Google Cloud, Azure
+Big Data: Spark, Hadoop, Flink, Kafka
+
+PUBLICATIONS & PATENTS
+- "Neural Architecture Search for Large Language Models" (Nature Machine Intelligence, 2022)
+- "Efficient Training of Deep Neural Networks with Gradient Compression" (ICML 2021)
+- Patent: "Method for Optimizing Neural Network Inference on Edge Devices" (US Patent 11,234,567)
+
+AWARDS & HONORS
+- ACM Doctoral Dissertation Award (2020)
+- Google PhD Fellowship (2018-2019)
+- National Scholarship for Excellence (2013-2017)
+- ACM-ICPC Asia Regional Champion (2016)
+
+LANGUAGES
+Mandarin Chinese (Native), English (Fluent), Japanese (Basic), Korean (Beginner)
+
+ADDITIONAL INFORMATION
+Visa Status: US H-1B (Approved), EU Blue Card (Eligible)
+Security Clearance: Chinese Government Level 3
+Interests: Quantum Computing, Blockchain, Competitive Programming
+
+REFERENCES
+Prof. Andrew Ng - Stanford University (ang@cs.stanford.edu)
+Dr. Li Feifei - Stanford AI Lab (feifeili@stanford.edu)
+
+Shanghai, January 2024

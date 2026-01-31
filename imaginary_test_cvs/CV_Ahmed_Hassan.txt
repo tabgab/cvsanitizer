@@ -1,0 +1,60 @@
+CV
+
+PERSONAL DETAILS
+Name: Ahmed Hassan
+Date of Birth: 03/03/1991
+Age: 32
+Nationality: Egyptian
+National ID: 29003011234567
+Passport: A12345678
+Address: 123 Al-Ahram Street, Apt 5, Nasr City, Cairo 11511, Egypt
+Phone: +20 2 2267 8910
+Mobile: +20 10 1234 5678
+Email: ahmed.hassan@siliconminds.com.eg
+Personal Email: ahmed.hassan91@gmail.com
+LinkedIn: https://eg.linkedin.com/in/ahmedhassan
+GitHub: https://github.com/ahmedhassan91
+Facebook: https://facebook.com/ahmed.hassan.1991
+
+EDUCATION
+2016-2018: American University in Cairo - MS in Computer Science
+2013-2016: Cairo University - BS in Computer Engineering (GPA: 3.8/4.0)
+2010-2013: El Nasr Boys School - Thanawiya Amma (97.5%)
+
+WORK EXPERIENCE
+2021-Present: Senior Software Engineer at SiliconMinds, Cairo
+2019-2021: Full Stack Developer at Vezeeta, Cairo
+2018-2019: Junior Developer at IBM Egypt, Cairo
+
+TECHNICAL SKILLS
+Languages: Python, JavaScript, Java, PHP, C++
+Frameworks: Django, Flask, React, Vue.js, Laravel, Spring Boot
+Databases: MySQL, PostgreSQL, MongoDB, Redis, Elasticsearch
+Cloud: AWS, Google Cloud, Azure, DigitalOcean
+Mobile: React Native, Flutter, Swift, Kotlin
+
+PROJECTS
+- Telemedicine Platform for Vezeeta (Healthcare Tech)
+- E-commerce Solution for Jumia (Marketplace)
+- Banking App for CIB (Financial Technology)
+- Government Services Portal (Public Sector)
+
+CERTIFICATIONS
+- AWS Certified Solutions Architect (2020)
+- Google Cloud Professional Developer (2019)
+- MongoDB Certified Developer (2018)
+
+LANGUAGES
+Arabic (Native), English (Fluent - IELTS 8.0), French (Intermediate), German (Basic)
+
+ADDITIONAL INFORMATION
+Military Service: Exempted (Only Child)
+Visa Status: US B1/B2, Schengen, UK
+Interests: Ancient Egyptian History, Photography, Hiking, Technology Startups
+Volunteer Work: Teaching programming to underprivileged youth
+
+REFERENCES
+Prof. Mohamed Ali - AUC (m.ali@aucegypt.edu)
+Mr. Karim Hafez - SiliconMinds (k.hafez@siliconminds.com)
+
+Cairo, January 2024

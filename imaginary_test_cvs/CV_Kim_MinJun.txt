@@ -1,0 +1,70 @@
+RESUME
+
+PERSONAL INFORMATION
+Name: Kim Min-jun
+Date of Birth: 1992-08-15
+Age: 31
+Nationality: South Korean
+Resident Registration Number: 920815-1234567
+Address: 123-45 Gangnam-gu, Seoul, South Korea
+Home: APT 504, 765-6 Yeoksam-dong, Gangnam-gu, Seoul 06234, Korea
+Phone: +82 2 1234 5678
+Mobile: +82 10 1234 5678
+KakaoTalk: minjunkim92
+Email: minjun.kim@samsung.com
+Personal Email: k.minjun@gmail.com
+LinkedIn: https://kr.linkedin.com/in/minjun-kim
+GitHub: https://github.com/minjunkim92
+Instagram: @minjun_kim_dev
+
+EDUCATION
+2017-2019: KAIST - MS in Electrical Engineering and Computer Science
+2011-2017: Seoul National University - BS in Computer Science and Engineering (GPA: 4.0/4.3)
+2008-2011: Seoul Science High School
+
+PROFESSIONAL EXPERIENCE
+2020-Present: AI Research Scientist at Samsung SDS, Seoul
+2019-2020: Software Engineer at Naver, Seongnam
+2017-2019: Research Intern at LG AI Research, Seoul
+
+TECHNICAL SKILLS
+Languages: Python, C++, Java, Kotlin, JavaScript
+Machine Learning: Deep Learning, Computer Vision, NLP, Speech Recognition
+Frameworks: TensorFlow, PyTorch, Keras, OpenCV, ESPnet
+Cloud: AWS, Google Cloud, Naver Cloud, Kakao Cloud
+Hardware: NVIDIA GPUs, TPU, Mobile Processors
+
+RESEARCH PUBLICATIONS
+- "End-to-End Korean Speech Recognition with Transformer Networks" (Interspeech 2021)
+- "Real-time Object Detection for Mobile Devices" (CVPR 2020)
+- "Neural Machine Translation for Low-Resource Languages" (ACL 2019)
+
+PATENTS
+- Mobile-First Deep Learning Architecture (KR Patent 10-2021-000123)
+- Optimized Neural Network Compression (KR Patent 10-2020-000456)
+
+COMPETITIONS & AWARDS
+- Samsung AI Challenge Grand Prize (2020)
+- Naver AI Hackathon Winner (2019)
+- Korean Olympiad in Informatics Gold Medal (2010)
+- International Mathematical Olympiad Bronze Medal (2009)
+
+LANGUAGES
+Korean (Native), English (Fluent - TOEIC 990), Japanese (Intermediate - JLPT N2), Chinese (Basic)
+
+CERTIFICATIONS
+- AWS Certified Machine Learning Specialist (2020)
+- Google Professional Data Engineer (2019)
+- TensorFlow Developer Certificate (2018)
+
+ADDITIONAL INFORMATION
+Military Service: Republic of Korea Army (2017-2018) - Completed
+Visa Status: US H-1B (Pending), Japan Working Holiday (Eligible)
+Health: Excellent, Non-smoker
+Interests: Baduk (Go), Traditional Korean Archery, AI Ethics, K-Pop
+
+REFERENCES
+Prof. Sung-Hoon Myaeng - KAIST (myaeng@kaist.ac.kr)
+Dr. Ji-Hoon Kim - Samsung AI Center (jh.kim@samsung.com)
+
+Seoul, January 2024

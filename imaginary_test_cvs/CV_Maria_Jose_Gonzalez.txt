@@ -1,0 +1,58 @@
+Curriculum Vitae
+
+Datos Personales
+Nombre Completo: María José González Rodríguez
+Fecha de Nacimiento: 07/09/1988
+Edad: 35 años
+Nacionalidad: Española
+DNI: 12345678Z
+Dirección: Calle de Gran Vía 123, 4º Izquierda, 28013 Madrid, España
+Teléfono: +34 91 123 45 67
+Móvil: +34 600 123 456
+Email: maria.jose.gonzalez@outlook.es
+Email Personal: mariagonzalez88@gmail.com
+LinkedIn: https://es.linkedin.com/in/mariajosegonzalez
+Twitter: @MJGonzalezTech
+Instagram: @marijose_glez
+
+Formación Académica
+2010-2015: Universidad Complutense de Madrid - Licenciatura en Informática
+2008-2010: IES Ramiro de Maeztu - Bachillerato Ciencias
+2002-2008: Colegio Nuestra Señora del Pilar - ESO y Bachillerato
+
+Experiencia Profesional
+2020-Actualidad: Tech Lead at Telefónica I+D, Madrid
+2018-2020: Senior Software Engineer at Indra Systems, Madrid
+2015-2018: Full Stack Developer at everis, Barcelona
+
+Competencias Técnicas
+Lenguajes: Java, Python, JavaScript, TypeScript, SQL
+Frameworks: Spring Boot, React, Angular, Node.js
+Cloud: AWS, Azure, Google Cloud
+Bases de Datos: Oracle, PostgreSQL, MongoDB, Redis
+Metodologías: Agile, Scrum, Kanban, DevOps
+
+Certificaciones
+- AWS Certified Solutions Architect (2019)
+- Certified Kubernetes Administrator (CKA) (2020)
+- Scrum Master Certified (2018)
+
+Proyectos Destacados
+- Plataforma de IoT para Smart Cities (Telefónica)
+- Sistema de Gestión Hospitalaria Digital (Indra)
+- Aplicación de Banca Móvil (everis)
+
+Idiomas
+Español (Nativo), Inglés (C1), Francés (B2), Italiano (A2)
+
+Información Adicional
+Carnet de Conducir: B
+Disponibilidad Geográfica: España y Europa
+Intereses: Inteligencia Artificial, Ciberseguridad, Sostenibilidad Tecnológica
+
+Referencias
+Disponibles bajo petición
+- Juan Carlos Martínez (Director en Telefónica): juan.martinez@telefonica.com
+- Ana López (HR Manager en Indra): ana.lopez@indra.es
+
+Madrid, 20 de enero de 2024

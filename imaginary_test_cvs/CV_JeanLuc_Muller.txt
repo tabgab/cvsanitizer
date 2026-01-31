@@ -1,0 +1,35 @@
+# Curriculum Vitae
+
+## Personal Information
+**Name:** Dr. Jean-Luc Müller
+**Date of Birth:** 15/03/1985
+**Nationality:** Swiss-German
+**Address:** Hauptstraße 42, 8001 Zürich, Switzerland
+**Phone:** +41 44 123 45 67
+**Email:** jeanluc.muller@bluewin.ch
+**LinkedIn:** https://linkedin.com/in/jeanlucmuller
+**GitHub:** https://github.com/jlmuller85
+
+## Education
+2008-2012: ETH Zürich - PhD in Computer Science
+2004-2008: University of Basel - MSc in Mathematics
+2000-2004: Gymnasium Bümpliz - Matura
+
+## Work Experience
+2018-Present: Senior Software Architect at Google Zürich
+2015-2018: Lead Developer at CERN
+2012-2015: Data Scientist at Swiss Re
+
+## Skills
+Languages: German (native), English (fluent), French (intermediate)
+Technical: Python, Java, Machine Learning, Cloud Computing
+Certificates: AWS Solutions Architect, Google Cloud Professional
+
+## Publications
+- "Advanced Algorithms for Big Data" (2019)
+- "Quantum Computing Applications" (2021)
+
+## References
+Available upon request
+
+Zürich, January 2024

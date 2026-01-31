@@ -1,0 +1,62 @@
+Curriculum Vitae
+
+Dados Pessoais
+Nome Completo: Carlos Alberto Silva Santos
+Data de Nascimento: 25/07/1989
+Idade: 34 anos
+Nacionalidade: Brasileira
+CPF: 123.456.789-00
+RG: MG-12.345.678
+Endereço: Rua das Flores, 123, Apto 404, Belo Horizonte, MG 30140-071, Brasil
+Telefone: +55 31 98765 4321
+Telefone Fixo: +55 31 3456 7890
+Email: carlos.silva@petrobras.com.br
+Email Pessoal: carlos.silva89@gmail.com
+LinkedIn: https://br.linkedin.com/in/carlosalbertosilva
+GitHub: https://github.com/carlossilva
+Twitter: @carlos_tech_br
+
+Formação Acadêmica
+2012-2014: Universidade Federal de Minas Gerais - Mestrado em Engenharia de Software
+2008-2012: Universidade Federal de Minas Gerais - Bacharelado em Ciência da Computação
+2005-2008: Colégio Santo Agostinho - Ensino Médio
+
+Experiência Profissional
+2020-Atualidade: Arquiteto de Software na Petrobras, Rio de Janeiro
+2018-2020: Desenvolvedor Sênior no Itaú Unibanco, São Paulo
+2016-2018: Engenheiro de Software na Magazine Luiza, São Paulo
+2014-2016: Desenvolvedor na ThoughtWorks, Belo Horizonte
+
+Competências Técnicas
+Linguagens: Java, Python, JavaScript, TypeScript, C#
+Frameworks: Spring Boot, React, Angular, Node.js, .NET Core
+Bancos de Dados: Oracle, PostgreSQL, MySQL, MongoDB, Redis
+Cloud: AWS, Google Cloud, Azure
+DevOps: Docker, Kubernetes, Jenkins, GitLab CI/CD, Terraform
+
+Certificações
+- AWS Solutions Architect Professional (2019)
+- Oracle Certified Professional (2018)
+- Scrum Master Certified (2017)
+- ITIL Foundation (2016)
+
+Projetos Destacados
+- Sistema de Integração de Dados para Exploração de Petróleo (Petrobras)
+- Plataforma de Banking Digital (Itaú Unibanco)
+- Sistema de Gestão de E-commerce (Magazine Luiza)
+- Aplicação de Supply Chain (ThoughtWorks)
+
+Idiomas
+Português (Nativo), Inglês (Fluente - TOEFL 105), Espanhol (Intermediário), Francês (Básico)
+
+Informações Adicionais
+Carteira de Motorista: AB (Carro e Moto)
+Situação Militar: Dispensado (Art. 6° da Lei 4.375/64)
+Interesses: Futebol, Cerveja Artesanal, Tecnologia, Startups, Música Brasileira
+
+Referências
+Disponíveis mediante solicitação
+- Eng. João Silva (Gerente na Petrobras) - joao.silva@petrobras.com.br
+- Dra. Maria Santos (Diretora no Itaú) - maria.santos@itau.com.br
+
+Belo Horizonte, 20 de janeiro de 2024

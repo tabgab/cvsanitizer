@@ -1,0 +1,56 @@
+Curriculum Vitae
+
+Informations Personnelles
+Nom: Amadou Diop
+Date de Naissance: 12/06/1990
+Âge: 33 ans
+Nationalité: Sénégalaise
+Passeport: SN1234567
+Adresse: Villa 123, Route de l'Aéroport, Dakar, Sénégal
+Téléphone: +221 33 823 45 67
+Mobile: +221 77 123 45 67
+Email: amadou.diop@orange.sn
+Email Professionnel: a.diop@banque-atlantique.sn
+LinkedIn: https://linkedin.com/in/amadou-diop
+Facebook: https://facebook.com/amadou.diop.1990
+
+Formation Académique
+2014-2016: Université Cheikh Anta Diop - Master en Informatique
+2011-2014: Université Gaston Berger - Licence en Mathématiques et Informatique
+2008-2011: Lycée Thierno Saïdou Nourou Tall - Baccalauréat Série S
+
+Expérience Professionnelle
+2020-Présent: Chef de Projet IT à Banque Atlantique, Dakar
+2018-2020: Développeur Senior à Sonatel, Dakar
+2016-2018: Développeur Web à Orange Sénégal, Dakar
+
+Compétences Techniques
+Langages: PHP, JavaScript, Python, Java, C#
+Frameworks: Laravel, Symfony, React, Vue.js, Angular
+Bases de Données: MySQL, PostgreSQL, MongoDB, Oracle
+Outils: Git, Docker, Jenkins, Jira
+Systèmes: Linux, Windows Server, Cisco Networking
+
+Certifications
+- Cisco Certified Network Associate (CCNA) (2017)
+- Oracle Certified Professional (OCP) (2018)
+- Project Management Professional (PMP) (2019)
+
+Projets Réalisés
+- Plateforme de Banque en Ligne pour Banque Atlantique
+- Système de Gestion de Clientèle pour Sonatel
+- Application Mobile de Services Publics pour Gouvernement du Sénégal
+
+Langues
+Français (Natif), Wolof (Natif), Anglais (Courant), Arabe (Limité)
+
+Informations Complémentaires
+Permis de Conduire: B (Véhicule et Moto)
+Situation Familiale: Marié, 2 enfants
+Centres d'Intérêt: Football, Lecture, Technologie, Développement Communautaire
+
+Références
+M. Abdoulaye Ba - DG Banque Atlantique (a.ba@banque-atlantique.sn)
+Mme. Fatoumata Sall - DRH Sonatel (f.sall@sonatel.sn)
+
+Dakar, 15 janvier 2024

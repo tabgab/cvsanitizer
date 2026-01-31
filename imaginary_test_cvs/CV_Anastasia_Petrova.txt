@@ -1,0 +1,63 @@
+CV
+
+PERSONAL DATA
+Name: Anastasia Petrova
+Date of Birth: 14/02/1993
+Age: 30
+Nationality: Russian
+Passport: 451234567
+Address: Ulitsa Tverskaya 45, Kvartira 12, Moscow 125009, Russia
+Phone: +7 495 123 45 67
+Mobile: +7 916 123 45 67
+Telegram: @anastasia_dev
+Email: anastasia.petrova@yandex.ru
+Work Email: a.petrova@yandex.ru
+LinkedIn: https://linkedin.com/in/anastasia-petrova
+GitHub: https://github.com/anastasia-petrova
+Habr: https://habr.com/ru/users/anastasia-petrova
+
+EDUCATION
+2015-2017: Moscow State University - MS in Applied Mathematics
+2011-2015: Bauman Moscow State Technical University - BS in Computer Science
+2007-2011: Moscow Physics and Mathematics Lyceum #157
+
+WORK EXPERIENCE
+2020-Present: Senior Data Scientist at Yandex, Moscow
+2018-2020: Machine Learning Engineer at SberTech, Moscow
+2017-2018: Junior Developer at Kaspersky Lab, Moscow
+
+TECHNICAL EXPERTISE
+Programming: Python, C++, Java, SQL, R
+Machine Learning: Deep Learning, Computer Vision, NLP, Reinforcement Learning
+Frameworks: TensorFlow, PyTorch, Keras, Scikit-learn, XGBoost
+Big Data: Apache Spark, Hadoop, Flink, Kafka
+Cloud: Yandex Cloud, AWS, Google Cloud
+
+PUBLICATIONS
+- "Deep Learning for Russian Language Processing" (ACL 2021)
+- "Computer Vision Applications in Autonomous Vehicles" (ICCV 2020)
+- "Large-Scale Recommendation Systems" (RecSys 2019)
+
+PATENTS
+- Method for Real-time Fraud Detection in Payment Systems (RU Patent 2712345)
+- System for Adaptive Traffic Light Control (RU Patent 2723456)
+
+AWARDS
+- Yandex Machine Learning Competition Winner (2019)
+- Google Developer Challenge Finalist (2018)
+- Russian Programming Olympiad Medalist (2013)
+
+LANGUAGES
+Russian (Native), English (Fluent - TOEFL 115), German (Intermediate), Chinese (Basic)
+
+ADDITIONAL INFORMATION
+Security Clearance: Russian Federation Level 2
+Military Service: Completed (2015-2016)
+Visas: US B1/B2, Schengen, UK
+Hobbies: Figure Skating, Classical Piano, Mathematical Puzzles, AI Ethics Research
+
+REFERENCES
+Prof. Ivan Petrov - Moscow State University (i.petrov@msu.ru)
+Dr. Elena Volkova - Yandex (e.volkova@yandex.ru)
+
+Moscow, January 2024
