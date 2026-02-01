@@ -180,7 +180,7 @@ class PDFParser:
             raise PDFParseError("No suitable PDF parsing library available")
     
     def _parse_with_pymupdf(self, pdf_path: str) -> Dict[str, Any]:
-        """Parse PDF using PyMuPDF (fitz)."""
+        """Parse PDF using PyMuPDF (fitz) with improved structure preservation."""
         if not PYMUPDF_AVAILABLE:
             raise PDFParseError("PyMuPDF not available")
         
@@ -202,10 +202,38 @@ class PDFParser:
                     'modification_date': doc.metadata.get('modDate', ''),
                 })
             
-            # Extract text from each page
+            # Extract text from each page using blocks for better structure
             for page_num in range(len(doc)):
                 page = doc.load_page(page_num)
-                page_text = page.get_text()
+                
+                # Use get_text("dict") for detailed extraction with spans
+                # This helps preserve text that may be split across font changes
+                page_dict = page.get_text("dict", sort=True)
+                
+                page_lines = []
+                prev_block_bottom = 0
+                
+                for block in page_dict.get("blocks", []):
+                    if block.get("type") == 0:  # Text block
+                        block_top = block.get("bbox", [0, 0, 0, 0])[1]
+                        
+                        # Add extra newline for visual gaps (section breaks)
+                        # If gap > 20 points, likely a new section
+                        if prev_block_bottom > 0 and (block_top - prev_block_bottom) > 20:
+                            page_lines.append("")  # Extra blank line for section
+                        
+                        for line in block.get("lines", []):
+                            line_text = ""
+                            for span in line.get("spans", []):
+                                # Concatenate all spans in the line (handles font changes mid-word)
+                                line_text += span.get("text", "")
+                            
+                            if line_text.strip():
+                                page_lines.append(line_text.strip())
+                        
+                        prev_block_bottom = block.get("bbox", [0, 0, 0, 0])[3]
+                
+                page_text = "\n".join(page_lines)
                 
                 if page_text.strip():
                     text_content.append({

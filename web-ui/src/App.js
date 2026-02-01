@@ -7,7 +7,7 @@ const App = () => {
   const [cvText, setCvText] = useState('');
   const [piiData, setPiiData] = useState([]);
   const [selectedPii, setSelectedPii] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [showAddPiiModal, setShowAddPiiModal] = useState(false);
@@ -200,21 +200,17 @@ const App = () => {
   const [currentCV, setCurrentCV] = useState('');
 
   useEffect(() => {
-    // Check URL parameter for CV name, otherwise pick random
+    // Check URL parameter for CV name - do NOT auto-load random CV
     const urlParams = new URLSearchParams(window.location.search);
     const cvParam = urlParams.get('cv');
     
-    let cvName;
     if (cvParam) {
       // Use provided CV name (strip .pdf extension if present)
-      cvName = cvParam.replace('.pdf', '').replace('.PDF', '');
-    } else {
-      // Pick random CV from test set
-      cvName = testCVs[Math.floor(Math.random() * testCVs.length)];
+      const cvName = cvParam.replace('.pdf', '').replace('.PDF', '');
+      setCurrentCV(cvName);
+      loadData(cvName);
     }
-    
-    setCurrentCV(cvName);
-    loadData(cvName);
+    // If no CV param, show selector (don't load anything)
   }, []);
 
   const loadData = async (cvName) => {
@@ -249,19 +245,23 @@ const App = () => {
       }));
       
       // Reconstruct original text by replacing PII placeholders with original values
+      // The pii.id IS the full tag like '<pii type="email" serial="8">'
       piiArray.forEach(pii => {
-        // Replace PII tags like <pii type="email" serial="19"> with the original text
-        const tagPattern = new RegExp(`<pii[^>]*serial="${pii.id.replace('pii_', '')}"[^>]*>`, 'g');
-        originalText = originalText.replace(tagPattern, pii.text);
+        // Direct string replacement - pii.id is the exact tag to replace
+        if (originalText.includes(pii.id)) {
+          originalText = originalText.split(pii.id).join(pii.text);
+        }
       });
       
-      // Also try direct ID replacement for any remaining placeholders
-      piiArray.forEach(pii => {
-        originalText = originalText.replace(pii.id, pii.text);
-      });
+      // Log for debugging
+      console.log('Reconstructed CV text length:', originalText.length);
+      console.log('Sample (first 500 chars):', originalText.substring(0, 500));
       
-      // Clean up any remaining PII tags that weren't matched
-      originalText = originalText.replace(/<pii[^>]*>/g, '[REDACTED]');
+      // Warn if any PII tags remain (indicates reconstruction issue)
+      const remainingTags = originalText.match(/<pii[^>]*>/g);
+      if (remainingTags) {
+        console.warn('Unreplaced PII tags:', remainingTags);
+      }
       
       setCvText(originalText);
       setPiiData(piiArray);
@@ -419,7 +419,7 @@ const App = () => {
     setPiiData(prev => prev.map(pii => !pii.removed ? { ...pii, approved: true } : pii));
     setAgreementVerified(true);
     setShowApprovalModal(false);
-    exportResults();
+    exportResults(true); // Pass agreement flag directly (state update is async)
   };
 
   const rejectProcessing = () => {
@@ -599,13 +599,14 @@ const App = () => {
   }, [cvText, piiData]);
 
   // Generate redacted text string for export
-  // Returns the FULL CV text with approved PII replaced by placeholders
+  // Returns the FULL CV text with non-removed PII replaced by placeholders
   const generateRedactedText = () => {
     if (!cvText) return { redactedText: '', piiMapping: {} };
     
-    const piiToRedact = piiData.filter(p => !p.removed && p.approved);
+    // Export ALL non-removed PII (user removed items they don't want redacted)
+    const piiToRedact = piiData.filter(p => !p.removed);
     if (piiToRedact.length === 0) {
-      // No PII approved - return original text unchanged
+      // No PII to redact - return original text unchanged
       return { redactedText: cvText, piiMapping: {} };
     }
     
@@ -625,7 +626,8 @@ const App = () => {
       const regex = new RegExp(escapeRegex(pii.text), 'i');
       const match = regex.exec(redactedText);
       if (match) {
-        const placeholder = `<pii type="${pii.type}" serial="${serial}">`;
+        // Use TYPE_REDACTED format (e.g., "email_REDACTED", "name_REDACTED")
+        const placeholder = `[${pii.type.toUpperCase()}_REDACTED_${serial}]`;
         piiMapping[placeholder] = {
           original: pii.text,
           category: pii.type,
@@ -640,13 +642,15 @@ const App = () => {
     return { redactedText, piiMapping };
   };
 
-  const exportResults = () => {
+  const exportResults = (agreedToProcess = false) => {
+    // Use passed flag or current state (flag needed because React state is async)
+    const isAgreed = agreedToProcess || agreementVerified;
+    
     const { redactedText, piiMapping } = generateRedactedText();
     const timestamp = new Date().toISOString();
-    
-    // Use currentCV for filename - log to verify
     const cvName = currentCV || 'exported_cv';
-    console.log('Exporting CV:', cvName, 'Text length:', redactedText.length);
+    
+    console.log('Exporting:', cvName, '| PII count:', Object.keys(piiMapping).length, '| Agreed:', isAgreed);
     
     // Redacted JSON (for LLM processing) - contains FULL CV text with PII replaced
     const redactedJson = {
@@ -657,13 +661,13 @@ const App = () => {
       redacted_text: redactedText,  // Full CV text with PII placeholders
       pii_summary: {
         total: Object.keys(piiMapping).length,
-        by_category: piiData.filter(p => !p.removed && p.approved).reduce((acc, p) => {
+        by_category: piiData.filter(p => !p.removed).reduce((acc, p) => {
           acc[p.type] = (acc[p.type] || 0) + 1;
           return acc;
         }, {})
       },
-      llm_processing_agreement: agreementVerified,
-      llm_agreement_timestamp: agreementVerified ? timestamp : null
+      llm_processing_agreement: isAgreed,
+      llm_agreement_timestamp: isAgreed ? timestamp : null
     };
     
     // PII Mapping JSON (for reconstruction)
@@ -699,6 +703,41 @@ const App = () => {
 
   if (error) {
     return <div style={{ padding: 40, textAlign: 'center', color: 'red' }}><h2>Error: {error}</h2></div>;
+  }
+
+  // Show CV selector if no CV is loaded
+  if (!currentCV) {
+    return (
+      <div style={{ padding: 40, textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>
+        <h1 style={{ color: '#2c3e50', marginBottom: 30 }}>CV Sanitizer - PII Review Interface</h1>
+        <h2 style={{ color: '#7f8c8d', marginBottom: 20 }}>Select a CV to review:</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 400, margin: '0 auto' }}>
+          {testCVs.map(cv => (
+            <button
+              key={cv}
+              onClick={() => {
+                setCurrentCV(cv);
+                loadData(cv);
+              }}
+              style={{
+                padding: '15px 25px',
+                fontSize: 16,
+                background: '#3498db',
+                color: 'white',
+                border: 'none',
+                borderRadius: 8,
+                cursor: 'pointer'
+              }}
+            >
+              {cv.replace(/_/g, ' ')}
+            </button>
+          ))}
+        </div>
+        <p style={{ marginTop: 30, color: '#95a5a6' }}>
+          Or load directly via URL: <code>?cv=CV_Name</code>
+        </p>
+      </div>
+    );
   }
 
   return (

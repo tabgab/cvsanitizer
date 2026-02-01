@@ -236,11 +236,11 @@ class PIIDetector:
             r'\b\d{9}[A-Z]{2}\b',               # Some Asian countries
         ]
         
-        # Address indicators
+        # Address indicators - use word boundaries to avoid false matches
         self.address_indicators = [
-            'address:', 'lives at', 'residing at', 'location:', 'located at',
-            'street', 'st', 'avenue', 'ave', 'road', 'rd', 'lane', 'ln',
-            'drive', 'dr', 'court', 'ct', 'way', 'boulevard', 'blvd',
+            r'\baddress:', r'\badresse:', r'\blives at\b', r'\bresiding at\b', 
+            r'\blocation:', r'\blocated at\b', r'\bdirección:',
+            r'\bstraße\b', r'\bstr\.\b', r'\bweg\b', r'\bplatz\b',
             'apartment', 'apt', 'suite', 'ste', 'unit', 'flat', '#'
         ]
         
@@ -534,9 +534,9 @@ class PIIDetector:
         
         # Look for address indicators followed by address-like text
         for indicator in self.address_indicators:
-            # Enhanced pattern to handle multi-line addresses
-            pattern = rf'{indicator}[\s:]*([^.,\n]+(?:\n[^.,\n]+)*)'
-            for match in re.finditer(pattern, text, re.IGNORECASE):
+            # Pattern captures up to 100 chars after indicator, stops at double newline
+            pattern = rf'{indicator}[\s:]*(.{{5,100}}?)(?:\n\n|$)'
+            for match in re.finditer(pattern, text, re.IGNORECASE | re.DOTALL):
                 address_text = match.group(1).strip()
                 # Clean up the address text
                 address_text = re.sub(r'\s+', ' ', address_text)
@@ -594,11 +594,32 @@ class PIIDetector:
         return matches
     
     def _is_likely_address(self, text: str) -> bool:
-        """Check if text is likely to be an address."""
-        address_keywords = ['street', 'st', 'avenue', 'ave', 'road', 'rd', 'lane', 'ln']
-        has_number = bool(re.search(r'\d+', text))
-        has_keyword = any(keyword in text.lower() for keyword in address_keywords)
-        return has_number and (has_keyword or len(text.split()) >= 3)
+        """Check if text is likely to be an address with stricter validation."""
+        # Reject if too long (addresses rarely exceed 150 chars)
+        if len(text) > 150:
+            return False
+        
+        # Reject if contains section headers or work-related keywords
+        reject_keywords = ['education', 'experience', 'work', 'skills', 'senior', 'junior',
+                          'engineer', 'manager', 'developer', 'architect', 'university',
+                          'science', 'bachelor', 'master', 'degree', 'doktor', 'fachrichtung']
+        if any(keyword in text.lower() for keyword in reject_keywords):
+            return False
+        
+        # Must have a street number pattern (number at start or after street name)
+        has_street_number = bool(re.search(r'(?:^|\s)\d{1,5}(?:\s|,|$)', text))
+        
+        # Must have address keyword with word boundary
+        address_keywords = [r'\bstreet\b', r'\bst\.?\b', r'\bavenue\b', r'\bave\.?\b', 
+                          r'\broad\b', r'\brd\.?\b', r'\blane\b', r'\bln\.?\b',
+                          r'\bstraße\b', r'\bstr\.?\b', r'\bweg\b', r'\bplatz\b',
+                          r'\bcalle\b', r'\brua\b', r'\bvia\b']
+        has_keyword = any(re.search(kw, text, re.IGNORECASE) for kw in address_keywords)
+        
+        # Also accept if has postal code pattern
+        has_postal = bool(re.search(r'\b\d{4,5}\b', text))
+        
+        return has_street_number and (has_keyword or has_postal)
     
     def _detect_national_ids(self, text: str, country: str) -> List[PIIMatch]:
         """Detect national ID numbers with country-specific patterns."""
