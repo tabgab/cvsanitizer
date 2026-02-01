@@ -300,13 +300,24 @@ class CVSanitizer:
         if not self.extracted_text or not self.detected_pii:
             raise ValueError("No text or PII detections available")
         
-        # Sort matches by start position (reverse order to avoid offset issues)
-        sorted_matches = sorted(self.detected_pii, key=lambda x: x.start, reverse=True)
+        # Sort matches by start position (ascending) then filter overlaps
+        sorted_matches = sorted(self.detected_pii, key=lambda x: (x.start, -(x.end - x.start)))
+        
+        # Remove overlapping matches - keep smaller/earlier ones
+        non_overlapping = []
+        last_end = 0
+        for match in sorted_matches:
+            if match.start >= last_end:
+                non_overlapping.append(match)
+                last_end = match.end
+        
+        # Now sort in reverse for replacement
+        non_overlapping = sorted(non_overlapping, key=lambda x: x.start, reverse=True)
         
         redacted_text = self.extracted_text
         pii_mapping = {}
         
-        for i, match in enumerate(sorted_matches, 1):
+        for i, match in enumerate(non_overlapping, 1):
             # Generate placeholder
             placeholder = f"<pii type=\"{match.category.value}\" serial=\"{i}\">"
             

@@ -328,16 +328,13 @@ class PIIDetector:
             # Explicit DOB indicators
             r'(?:date of birth|dob|born|birthday)[\s:]*\d{1,2}[/-]\d{1,2}[/-]\d{2,4}',
             r'(?:date of birth|dob|born|birthday)[\s:]*\d{2,4}[/-]\d{1,2}[/-]\d{1,2}',
-            # Age-related patterns
-            r'(?:age|aged?|years? old)[\s:]*\d{1,2}\s*(?:years?)?\s*(?:old)?',
-            r'(?:age|born in)[\s:]*\d{4}',
-            # Date formats with context
+            # Date formats with context - only capture the date, not entire sections
             r'\b(?:\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{2,4}[/-]\d{1,2}[/-]\d{1,2})\s*(?:\(?\d{1,2}\s*(?:years?|y\.o\.)\)?)',
-            # International date formats
+            # International date formats - standalone dates
             r'\b\d{4}[-/.]\d{1,2}[-/.]\d{1,2}\b',  # YYYY-MM-DD
             r'\b\d{1,2}[-/.]\d{1,2}[-/.]\d{4}\b',  # DD-MM-YYYY or MM-DD-YYYY
-            # DOB in personal info sections
-            r'(?:personal\s*details?|information|about\s*me|profile)[\s\S]*?(?:\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{2,4}[/-]\d{1,2}[/-]\d{1,2})',
+            # DOB with label - capture label + date only (not entire sections)
+            r'(?:data\s*de\s*nascimento|geburtsdatum|fecha\s*de\s*nacimiento|date\s*of\s*birth)[\s:]*\d{1,2}[/-]\d{1,2}[/-]\d{2,4}',
         ]
     
     def detect_pii(self, text: str, country: Optional[str] = None) -> List[PIIMatch]:
@@ -832,32 +829,34 @@ class PIIDetector:
         return matches
     
     def _remove_overlaps(self, matches: List[PIIMatch]) -> List[PIIMatch]:
-        """Remove overlapping matches, keeping the one with highest confidence."""
+        """Remove overlapping matches, preferring smaller specific matches over large merged ones."""
         if not matches:
             return matches
         
-        filtered = []
-        i = 0
+        # Sort by start position, then by length (shorter first)
+        matches = sorted(matches, key=lambda x: (x.start, x.end - x.start))
         
-        while i < len(matches):
-            current = matches[i]
+        filtered = []
+        covered_ranges = []  # List of (start, end) tuples
+        
+        for match in matches:
+            # Check if this match is fully contained within an already-added match
+            is_redundant = False
+            for start, end in covered_ranges:
+                # If current match overlaps significantly with existing coverage
+                overlap_start = max(match.start, start)
+                overlap_end = min(match.end, end)
+                if overlap_end > overlap_start:
+                    overlap_size = overlap_end - overlap_start
+                    match_size = match.end - match.start
+                    # If >80% of match is already covered, skip it
+                    if overlap_size / match_size > 0.8:
+                        is_redundant = True
+                        break
             
-            # Check if current overlaps with next matches
-            j = i + 1
-            overlapping = []
-            while j < len(matches) and matches[j].start < current.end:
-                overlapping.append(matches[j])
-                j += 1
-            
-            if overlapping:
-                # Find the match with highest confidence
-                all_matches = [current] + overlapping
-                best_match = max(all_matches, key=lambda x: x.confidence)
-                filtered.append(best_match)
-                i = j  # Skip overlapping matches
-            else:
-                filtered.append(current)
-                i += 1
+            if not is_redundant:
+                filtered.append(match)
+                covered_ranges.append((match.start, match.end))
         
         return filtered
     
