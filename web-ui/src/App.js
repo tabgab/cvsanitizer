@@ -23,6 +23,9 @@ const App = () => {
   const [otherPiiText, setOtherPiiText] = useState(''); // Store text for Other modal
   const cvContainerRef = useRef(null);
   
+  // Redacted view toggle
+  const [isRedactedView, setIsRedactedView] = useState(false);
+  
   // Handle text selection in CV view
   const handleTextSelection = useCallback((e) => {
     // Don't show popup if clicking on a PII box
@@ -531,23 +534,147 @@ const App = () => {
     setEditingPii(null);
   };
 
+  // Render redacted view with Type_REDACTED placeholders
+  const renderRedactedView = useMemo(() => {
+    if (!cvText) return null;
+    
+    // Preview shows ALL non-removed PII (marked for redaction)
+    // Export will only use approved items
+    const piiToRedact = piiData.filter(p => !p.removed);
+    if (piiToRedact.length === 0) {
+      return <span style={{ color: '#666', fontStyle: 'italic' }}>No PII marked for redaction. Add PII items in edit mode.</span>;
+    }
+    
+    // Find all PII positions
+    const replacements = [];
+    piiToRedact.forEach(pii => {
+      const regex = new RegExp(escapeRegex(pii.text), 'i');
+      const match = regex.exec(cvText);
+      if (match) {
+        replacements.push({
+          start: match.index,
+          end: match.index + match[0].length,
+          pii,
+          originalText: match[0]
+        });
+      }
+    });
+    
+    // Sort by position and remove overlaps
+    replacements.sort((a, b) => a.start - b.start);
+    const filtered = [];
+    let lastEnd = 0;
+    for (const r of replacements) {
+      if (r.start >= lastEnd) {
+        filtered.push(r);
+        lastEnd = r.end;
+      }
+    }
+    
+    // Build result with redacted placeholders
+    const elements = [];
+    let currentPos = 0;
+    
+    filtered.forEach((r, idx) => {
+      if (r.start > currentPos) {
+        elements.push(cvText.substring(currentPos, r.start));
+      }
+      
+      // Format type for display (capitalize first letter)
+      const typeDisplay = r.pii.type.charAt(0).toUpperCase() + r.pii.type.slice(1);
+      elements.push(
+        <span key={`redacted-${idx}`} style={{ color: '#e74c3c', fontWeight: 'bold' }}>
+          {typeDisplay}_REDACTED
+        </span>
+      );
+      
+      currentPos = r.end;
+    });
+    
+    if (currentPos < cvText.length) {
+      elements.push(cvText.substring(currentPos));
+    }
+    
+    return elements;
+  }, [cvText, piiData]);
+
+  // Generate redacted text string for export
+  const generateRedactedText = () => {
+    if (!cvText) return '';
+    
+    const piiToRedact = piiData.filter(p => !p.removed && p.approved);
+    if (piiToRedact.length === 0) return cvText;
+    
+    let redactedText = cvText;
+    const piiMapping = {};
+    let serial = 1;
+    
+    // Sort PII by position (descending) to replace from end to start
+    const sortedPii = [...piiToRedact].sort((a, b) => {
+      const posA = cvText.toLowerCase().indexOf(a.text.toLowerCase());
+      const posB = cvText.toLowerCase().indexOf(b.text.toLowerCase());
+      return posB - posA;
+    });
+    
+    sortedPii.forEach(pii => {
+      const regex = new RegExp(escapeRegex(pii.text), 'i');
+      const match = regex.exec(redactedText);
+      if (match) {
+        const placeholder = `<pii type="${pii.type}" serial="${serial}">`;
+        piiMapping[placeholder] = {
+          original: pii.text,
+          category: pii.type,
+          position: { start: match.index, end: match.index + match[0].length },
+          confidence: pii.confidence || 0.9
+        };
+        redactedText = redactedText.substring(0, match.index) + placeholder + redactedText.substring(match.index + match[0].length);
+        serial++;
+      }
+    });
+    
+    return { redactedText, piiMapping };
+  };
+
   const exportResults = () => {
-    const results = {
-      agreementVerified,
-      timestamp: new Date().toISOString(),
-      piiData: piiData.filter(p => !p.removed).map(p => ({
-        id: p.id,
-        type: p.type,
-        text: p.text,
-        approved: p.approved
-      }))
+    const { redactedText, piiMapping } = generateRedactedText();
+    const timestamp = new Date().toISOString();
+    
+    // Redacted JSON (for LLM processing)
+    const redactedJson = {
+      cv_filename: `${currentCV}_redacted.json`,
+      original_filename: `${currentCV}.pdf`,
+      processing_date: timestamp,
+      pii_detected_count: Object.keys(piiMapping).length,
+      redacted_text: redactedText,
+      pii_summary: {
+        total: Object.keys(piiMapping).length,
+        by_category: piiData.filter(p => !p.removed && p.approved).reduce((acc, p) => {
+          acc[p.type] = (acc[p.type] || 0) + 1;
+          return acc;
+        }, {})
+      },
+      llm_processing_agreement: agreementVerified,
+      llm_agreement_timestamp: agreementVerified ? timestamp : null
     };
     
-    const blob = new Blob([JSON.stringify(results, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'pii_review_results.json';
-    a.click();
+    // PII Mapping JSON (for reconstruction)
+    const piiMappingJson = piiMapping;
+    
+    // Download redacted JSON
+    const blob1 = new Blob([JSON.stringify(redactedJson, null, 2)], { type: 'application/json' });
+    const a1 = document.createElement('a');
+    a1.href = URL.createObjectURL(blob1);
+    a1.download = `${currentCV}_redacted.json`;
+    a1.click();
+    
+    // Download PII mapping JSON
+    setTimeout(() => {
+      const blob2 = new Blob([JSON.stringify(piiMappingJson, null, 2)], { type: 'application/json' });
+      const a2 = document.createElement('a');
+      a2.href = URL.createObjectURL(blob2);
+      a2.download = `${currentCV}.pii.json`;
+      a2.click();
+    }, 500);
   };
 
   const stats = {
@@ -568,8 +695,45 @@ const App = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', fontFamily: 'Arial, sans-serif' }}>
       {/* Header */}
-      <div style={{ background: '#2c3e50', color: 'white', padding: 15, textAlign: 'center' }}>
+      <div style={{ background: '#2c3e50', color: 'white', padding: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20 }}>
         <h1 style={{ margin: 0, fontSize: 22 }}>CV Sanitizer - PII Review Interface</h1>
+        <button
+          onClick={() => setIsRedactedView(!isRedactedView)}
+          style={{
+            background: isRedactedView ? '#e74c3c' : '#27ae60',
+            border: 'none',
+            borderRadius: 8,
+            padding: '10px 20px',
+            color: 'white',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            fontSize: 14,
+            fontWeight: 'bold'
+          }}
+          title={isRedactedView ? 'Switch to Edit Mode' : 'Preview Redacted View'}
+        >
+          {isRedactedView ? (
+            <>
+              {/* Eye with strikethrough */}
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23" stroke="#e74c3c" strokeWidth="3"/>
+              </svg>
+              Edit Mode
+            </>
+          ) : (
+            <>
+              {/* Eye icon */}
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              Preview Redacted
+            </>
+          )}
+        </button>
       </div>
       
       {/* Main Content */}
@@ -593,16 +757,22 @@ const App = () => {
             fontFamily: 'Georgia, serif'
           }}>
             <div style={{ textAlign: 'center', marginBottom: 20, borderBottom: '2px solid #2c3e50', paddingBottom: 15 }}>
-              <h2 style={{ margin: 0, color: '#2c3e50' }}>CURRICULUM VITAE</h2>
+              <h2 style={{ margin: 0, color: '#2c3e50' }}>
+                CURRICULUM VITAE
+                {isRedactedView && <span style={{ color: '#e74c3c', fontSize: 14, marginLeft: 10 }}>(REDACTED PREVIEW)</span>}
+              </h2>
               <p style={{ color: '#666', fontSize: 12, marginTop: 10 }}>
-                Select text to add as PII • Click boxes to select • Drag box edges to resize
+                {isRedactedView 
+                  ? 'Preview: All marked PII shown as redacted. Approve items before Export for final version.'
+                  : 'Select text to add as PII • Click boxes to select • Drag box edges to resize'
+                }
               </p>
             </div>
-            {renderCvWithPii}
+            {isRedactedView ? renderRedactedView : renderCvWithPii}
           </div>
           
-          {/* Selection Popup */}
-          {selectionPopup && (
+          {/* Selection Popup - only show in edit mode */}
+          {selectionPopup && !isRedactedView && (
             <div 
               data-selection-popup="true"
               style={{

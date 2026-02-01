@@ -130,9 +130,14 @@ Web UI features:
   - **Merge Boxes** - Select multiple adjacent boxes and merge them into one
   - **Delete False Positives** - Remove incorrectly detected PII items
   - **Edit Boundaries** - Modify PII text via edit modal
+- **Preview Toggle** - Eye icon button to switch between:
+  - **Edit Mode** - See PII with colored boxes for editing
+  - **Redacted Preview** - See how CV looks with `Type_REDACTED` placeholders (works without approval)
 - **Batch Operations** - Select All, Deselect, Approve All, Approve Selected
 - **LLM Consent Modal** - Required agreement before processing
-- **Export Results** - Download approved PII as JSON
+- **Export Results** - Downloads two JSON files:
+  - `*_redacted.json` - CV text with PII replaced by tags (for LLM processing)
+  - `*.pii.json` - Mapping to reconstruct original CV later
 
 ## Node.js Usage
 
@@ -603,6 +608,15 @@ MIT License - see LICENSE file for details.
 - **Discussions**: [GitHub Discussions](https://github.com/tabgab/cvsanitizer/discussions)
 
 ## Changelog
+
+### v1.2.0 (2026-02-01)
+- **Preview Toggle Feature** - Eye icon button to preview redacted CV
+  - Shows all marked PII as `Type_REDACTED` placeholders in red
+  - Works without requiring approval (preview is non-final)
+  - Toggle back to edit mode to continue editing
+- **Enhanced Export** - Generates two JSON files for LLM processing and reconstruction
+- **Social Media Detection** - Added Twitter/Instagram @handles and portfolio URLs
+- **Dynamic CV Loading** - Web UI accepts `?cv=` parameter or loads random test CV
 
 ### v1.1.0 (2026-01-31)
 - **Web UI Overhaul** - Complete rewrite with custom CV viewer
