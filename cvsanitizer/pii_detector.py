@@ -20,6 +20,8 @@ class PIICategory(Enum):
     POSTCODE = "postcode"
     NAME = "name"
     DOB = "dob"
+    AGE = "age"
+    NATIONALITY = "nationality"
     NATIONAL_ID = "national_id"
     PASSPORT = "passport"
     LINKEDIN = "linkedin"
@@ -130,6 +132,23 @@ class PIIDetector:
                 # Handle fragmented phone numbers (common in PDFs)
                 r'(?:\+36|06|01|20|30|31|70)\s*\n?\s*\d{3}\s*\n?\s*\d{4}',
                 r'(?:\+36|06|01|20|30|31|70)\s*\n?\s*\d{2}\s*\n?\s*\d{2}\s*\n?\s*\d{3}',
+            ],
+            'BR': [
+                # Brazilian mobile: +55 31 98765-4321 or (31) 98765-4321
+                r'\b\+55\s?\d{2}\s?\d{4,5}[-.\s]?\d{4}\b',
+                r'\b\(\d{2}\)\s?\d{4,5}[-.\s]?\d{4}\b',
+                # Brazilian landline: +55 31 3456-7890
+                r'\b\+55\s?\d{2}\s?\d{4}[-.\s]?\d{4}\b',
+            ],
+            'MX': [
+                # Mexican mobile: +52 55 1234-5678 or +52 1 55 8765-4321
+                r'\b\+52\s?1?\s?\d{2}\s?\d{4}[-.\s]?\d{4}\b',
+                r'\b\(\d{2,3}\)\s?\d{4}[-.\s]?\d{4}\b',
+            ],
+            'JP': [
+                # Japanese: +81 90-1234-5678 or 090-1234-5678
+                r'\b\+81\s?\d{1,2}[-.\s]?\d{4}[-.\s]?\d{4}\b',
+                r'\b0\d{1,2}[-.\s]?\d{4}[-.\s]?\d{4}\b',
             ],
         }
         
@@ -249,9 +268,10 @@ class PIIDetector:
         # Also includes standalone @handles for Twitter/Instagram
         self.social_patterns = {
             'linkedin': [
-                r'(?:https?://)?(?:www\.)?linkedin\.com/in/[A-Za-z0-9\-_]{3,50}/?',
-                r'(?:https?://)?(?:www\.)?linkedin\.com/company/[A-Za-z0-9\-_]{3,50}/?',
-                r'(?:https?://)?(?:www\.)?linkedin\.com/profile/view\?id=\d+',
+                # Full LinkedIn URLs with country subdomains (br.linkedin.com, uk.linkedin.com, etc.)
+                r'(?:https?://)?(?:[a-z]{2}\.)?(?:www\.)?linkedin\.com/in/[A-Za-z0-9\-_]{3,50}/?',
+                r'(?:https?://)?(?:[a-z]{2}\.)?(?:www\.)?linkedin\.com/company/[A-Za-z0-9\-_]{3,50}/?',
+                r'(?:https?://)?(?:[a-z]{2}\.)?(?:www\.)?linkedin\.com/profile/view\?id=\d+',
             ],
             'twitter': [
                 r'(?:https?://)?(?:www\.)?twitter\.com/[A-Za-z0-9_]{1,15}/?',
@@ -346,6 +366,8 @@ class PIIDetector:
         matches.extend(self._detect_social_media(text))
         matches.extend(self._detect_names(text))
         matches.extend(self._detect_dob(text))
+        matches.extend(self._detect_age(text))
+        matches.extend(self._detect_nationality(text))
         
         # Sort by position and remove duplicates
         matches = sorted(matches, key=lambda x: x.start)
@@ -470,6 +492,28 @@ class PIIDetector:
                                     confidence=confidence,
                                     country_code=country
                                 ))
+        
+        # Generic international phone patterns as fallback
+        generic_patterns = [
+            # International format: +XX XX XXXXX-XXXX or +XX (XX) XXXXX-XXXX
+            r'\+\d{1,3}\s*\(?\d{1,4}\)?\s*\d{4,5}[-.\s]?\d{4}',
+            # With label: Telefone: +55 31 98765-4321, Fixo: +55 31 3456-7890
+            r'(?:telefone|phone|tel|mobile|mobil|celular|fixo|fax)[\s:]*\+?\d[\d\s\-\.\(\)]{8,20}',
+        ]
+        
+        for pattern in generic_patterns:
+            for match in re.finditer(pattern, text, re.IGNORECASE):
+                phone = re.sub(r'[^\d+]', '', match.group())
+                if phone not in seen_phones and len(phone) >= 10:
+                    seen_phones.add(phone)
+                    matches.append(PIIMatch(
+                        category=PIICategory.PHONE,
+                        text=match.group(),
+                        start=match.start(),
+                        end=match.end(),
+                        confidence=0.75,
+                        country_code=country
+                    ))
         
         return matches
     
@@ -887,3 +931,75 @@ class PIIDetector:
             confidence += 0.1
         
         return min(confidence, 0.95)
+    
+    def _detect_age(self, text: str) -> List[PIIMatch]:
+        """Detect age information in multiple languages."""
+        matches = []
+        seen_ages = set()
+        
+        # Age patterns with language variants
+        age_patterns = [
+            # English: Age: 34 years, Age: 34
+            r'\b(?:age|anos?|jahre?|años?|età|âge|leeftijd|wiek|возраст)[\s:]+(\d{1,3})\s*(?:years?|anos?|jahre?|años?|anni|ans|jaar|lat|лет)?\b',
+            # Portuguese: Idade: 34 anos
+            r'\bidade[\s:]+(\d{1,3})\s*(?:anos?)?\b',
+            # German: Alter: 38 Jahre  
+            r'\balter[\s:]+(\d{1,3})\s*(?:jahre?)?\b',
+            # Spanish: Edad: 35 años
+            r'\bedad[\s:]+(\d{1,3})\s*(?:años?)?\b',
+            # Japanese: 年齢: 33歳
+            r'年齢[\s:]*(\d{1,3})\s*歳?',
+            # Generic: number + years/anos/jahre
+            r'\b(\d{1,2})\s+(?:years?\s+old|anos?\s+de\s+idade|jahre\s+alt|años)\b',
+        ]
+        
+        for pattern in age_patterns:
+            for match in re.finditer(pattern, text, re.IGNORECASE):
+                age_text = match.group()
+                if age_text.lower() not in seen_ages:
+                    seen_ages.add(age_text.lower())
+                    matches.append(PIIMatch(
+                        category=PIICategory.AGE,
+                        text=age_text,
+                        start=match.start(),
+                        end=match.end(),
+                        confidence=0.8
+                    ))
+        
+        return matches
+    
+    def _detect_nationality(self, text: str) -> List[PIIMatch]:
+        """Detect nationality information in multiple languages."""
+        matches = []
+        seen_nationalities = set()
+        
+        # Nationality patterns with language variants
+        nationality_patterns = [
+            # English: Nationality: British
+            r'\bnationality[\s:]+([A-Za-zÀ-ÿ\s]+?)(?:\n|$|,)',
+            # Portuguese: Nacionalidade: Brasileira
+            r'\bnacionalidade[\s:]+([A-Za-zÀ-ÿ\s]+?)(?:\n|$|,)',
+            # German: Nationalität: Deutsch, Staatsangehörigkeit: Deutsch
+            r'\b(?:nationalität|staatsangehörigkeit)[\s:]+([A-Za-zÀ-ÿ\s]+?)(?:\n|$|,)',
+            # Spanish: Nacionalidad: Mexicana
+            r'\bnacionalidad[\s:]+([A-Za-zÀ-ÿ\s]+?)(?:\n|$|,)',
+            # Japanese: 国籍: 日本
+            r'国籍[\s:]*([^\n,]+?)(?:\n|$|,)',
+            # French: Nationalité: Française
+            r'\bnationalité[\s:]+([A-Za-zÀ-ÿ\s]+?)(?:\n|$|,)',
+        ]
+        
+        for pattern in nationality_patterns:
+            for match in re.finditer(pattern, text, re.IGNORECASE):
+                nationality_text = match.group().strip()
+                if nationality_text.lower() not in seen_nationalities:
+                    seen_nationalities.add(nationality_text.lower())
+                    matches.append(PIIMatch(
+                        category=PIICategory.NATIONALITY,
+                        text=nationality_text,
+                        start=match.start(),
+                        end=match.end(),
+                        confidence=0.8
+                    ))
+        
+        return matches
