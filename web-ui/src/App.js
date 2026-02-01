@@ -44,14 +44,14 @@ const App = () => {
         const range = selection.getRangeAt(0);
         const rect = range.getBoundingClientRect();
         
-        // Verify the selected text exists in cvText
-        if (cvText.includes(selectedText)) {
-          setSelectionPopup({
-            text: selectedText,
-            x: rect.left + rect.width / 2,
-            y: rect.top - 10
-          });
-        }
+        // Always show popup for valid selections - text may appear multiple times
+        // or have slight variations due to unicode normalization
+        console.log('Selected text:', selectedText, 'Length:', selectedText.length);
+        setSelectionPopup({
+          text: selectedText,
+          x: rect.left + rect.width / 2,
+          y: rect.top - 10
+        });
       } else {
         setSelectionPopup(null);
       }
@@ -599,17 +599,22 @@ const App = () => {
   }, [cvText, piiData]);
 
   // Generate redacted text string for export
+  // Returns the FULL CV text with approved PII replaced by placeholders
   const generateRedactedText = () => {
-    if (!cvText) return '';
+    if (!cvText) return { redactedText: '', piiMapping: {} };
     
     const piiToRedact = piiData.filter(p => !p.removed && p.approved);
-    if (piiToRedact.length === 0) return cvText;
+    if (piiToRedact.length === 0) {
+      // No PII approved - return original text unchanged
+      return { redactedText: cvText, piiMapping: {} };
+    }
     
     let redactedText = cvText;
     const piiMapping = {};
     let serial = 1;
     
     // Sort PII by position (descending) to replace from end to start
+    // This ensures positions don't shift during replacement
     const sortedPii = [...piiToRedact].sort((a, b) => {
       const posA = cvText.toLowerCase().indexOf(a.text.toLowerCase());
       const posB = cvText.toLowerCase().indexOf(b.text.toLowerCase());
@@ -639,13 +644,17 @@ const App = () => {
     const { redactedText, piiMapping } = generateRedactedText();
     const timestamp = new Date().toISOString();
     
-    // Redacted JSON (for LLM processing)
+    // Use currentCV for filename - log to verify
+    const cvName = currentCV || 'exported_cv';
+    console.log('Exporting CV:', cvName, 'Text length:', redactedText.length);
+    
+    // Redacted JSON (for LLM processing) - contains FULL CV text with PII replaced
     const redactedJson = {
-      cv_filename: `${currentCV}_redacted.json`,
-      original_filename: `${currentCV}.pdf`,
+      cv_filename: `${cvName}_redacted.json`,
+      original_filename: `${cvName}.pdf`,
       processing_date: timestamp,
       pii_detected_count: Object.keys(piiMapping).length,
-      redacted_text: redactedText,
+      redacted_text: redactedText,  // Full CV text with PII placeholders
       pii_summary: {
         total: Object.keys(piiMapping).length,
         by_category: piiData.filter(p => !p.removed && p.approved).reduce((acc, p) => {
@@ -664,7 +673,7 @@ const App = () => {
     const blob1 = new Blob([JSON.stringify(redactedJson, null, 2)], { type: 'application/json' });
     const a1 = document.createElement('a');
     a1.href = URL.createObjectURL(blob1);
-    a1.download = `${currentCV}_redacted.json`;
+    a1.download = `${cvName}_redacted.json`;
     a1.click();
     
     // Download PII mapping JSON
@@ -672,7 +681,7 @@ const App = () => {
       const blob2 = new Blob([JSON.stringify(piiMappingJson, null, 2)], { type: 'application/json' });
       const a2 = document.createElement('a');
       a2.href = URL.createObjectURL(blob2);
-      a2.download = `${currentCV}.pii.json`;
+      a2.download = `${cvName}.pii.json`;
       a2.click();
     }, 500);
   };
@@ -697,6 +706,7 @@ const App = () => {
       {/* Header */}
       <div style={{ background: '#2c3e50', color: 'white', padding: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20 }}>
         <h1 style={{ margin: 0, fontSize: 22 }}>CV Sanitizer - PII Review Interface</h1>
+        {currentCV && <span style={{ background: '#34495e', padding: '5px 12px', borderRadius: 4, fontSize: 14 }}>{currentCV.replace(/_/g, ' ')}</span>}
         <button
           onClick={() => setIsRedactedView(!isRedactedView)}
           style={{
